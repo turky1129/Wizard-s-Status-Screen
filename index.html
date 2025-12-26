@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ナイトウィザード キャラクターメイク（モック）</title>
+  <style>
+    :root{
+      --bg:#0e1116;
+      --panel:#151a22;
+      --panel2:#10141b;
+      --line:rgba(255,255,255,.10);
+      --line2:rgba(255,255,255,.18);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.66);
+      --accent:#7cf0ff;
+      --accent2:#b8ff6a;
+      --danger:#ff6a7a;
+      --shadow: 0 16px 40px rgba(0,0,0,.45);
+      --radius:16px;
+      --radius2:12px;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(124,240,255,.10), transparent 55%),
+        radial-gradient(1000px 700px at 80% 0%, rgba(184,255,106,.08), transparent 50%),
+        radial-gradient(900px 700px at 70% 100%, rgba(255,106,122,.06), transparent 55%),
+        var(--bg);
+      color:var(--text);
+    }
+
+    .wrap{ max-width: 1120px; margin: 0 auto; padding: 18px; }
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; margin-bottom:12px;
+    }
+    .title{
+      display:flex; align-items:baseline; gap:10px;
+      font-weight:700; letter-spacing:.02em;
+    }
+    .title small{ color:var(--muted); font-weight:600; }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px; border:1px solid var(--line);
+      border-radius:999px; background:rgba(255,255,255,.04);
+      color:var(--muted); font-size:12px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 320px 1fr;
+      gap:14px;
+    }
+
+    .panel{
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .panel .hd{
+      padding:12px 14px;
+      display:flex; align-items:center; justify-content:space-between;
+      border-bottom:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+    }
+    .panel .hd b{ font-size:13px; letter-spacing:.04em; }
+    .panel .bd{ padding:14px; }
+
+    /* Left: portrait */
+    .portrait{
+      display:flex; flex-direction:column; gap:12px;
+    }
+    .portraitBox{
+      width:100%;
+      aspect-ratio: 4 / 5;
+      border-radius: var(--radius2);
+      border:1px solid var(--line2);
+      background:
+        radial-gradient(700px 300px at 30% 0%, rgba(124,240,255,.10), transparent 55%),
+        radial-gradient(700px 300px at 70% 100%, rgba(184,255,106,.10), transparent 55%),
+        rgba(255,255,255,.02);
+      position:relative;
+      overflow:hidden;
+    }
+    .portraitBox img{
+      position:absolute; inset:0;
+      width:100%; height:100%; object-fit:cover;
+      display:none;
+    }
+    .portraitBox .hint{
+      position:absolute; inset:0;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      color:var(--muted);
+      gap:8px; text-align:center;
+      padding:16px;
+    }
+    .btnRow{ display:flex; gap:10px; }
+    button{
+      border:1px solid var(--line2);
+      background:rgba(255,255,255,.04);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius: 12px;
+      font-weight:650;
+      cursor:pointer;
+      transition: transform .05s ease, background .15s ease, border .15s ease;
+    }
+    button:hover{ background:rgba(255,255,255,.07); }
+    button:active{ transform: translateY(1px); }
+    button.primary{
+      border-color: rgba(124,240,255,.45);
+      box-shadow: 0 0 0 2px rgba(124,240,255,.10) inset;
+    }
+    button.danger{
+      border-color: rgba(255,106,122,.45);
+      color: #ffd5db;
+    }
+    input[type="file"]{ display:none; }
+
+    /* Right: info + radar */
+    .rightTop{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:14px;
+    }
+
+    .formGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .field{
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .field label{
+      font-size:12px; color:var(--muted);
+    }
+    .field input, .field select, .field textarea{
+      border:1px solid var(--line2);
+      background:rgba(0,0,0,.18);
+      color:var(--text);
+      padding:10px 10px;
+      border-radius: 12px;
+      outline:none;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus{
+      border-color: rgba(124,240,255,.55);
+      box-shadow: 0 0 0 3px rgba(124,240,255,.10);
+    }
+    .field.full{ grid-column: 1 / -1; }
+    .miniRow{
+      display:flex; gap:10px; flex-wrap:wrap;
+    }
+    .miniRow .pill{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px;
+      color:var(--muted);
+      display:flex; gap:8px; align-items:center;
+    }
+    .miniRow .pill b{ color:var(--text); }
+
+    .radarWrap{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+      align-content:start;
+    }
+    .radarCanvas{
+      width:100%;
+      aspect-ratio: 1 / 1;
+      border-radius: var(--radius2);
+      border:1px solid var(--line2);
+      background: radial-gradient(600px 600px at 30% 20%, rgba(124,240,255,.08), transparent 55%),
+                  radial-gradient(600px 600px at 70% 80%, rgba(184,255,106,.06), transparent 55%),
+                  rgba(255,255,255,.02);
+    }
+
+    .statList{ display:flex; flex-direction:column; gap:10px; }
+    .stat{
+      display:grid;
+      grid-template-columns: 70px 1fr 46px;
+      gap:10px; align-items:center;
+    }
+    .stat span{ color:var(--muted); font-size:12px; }
+    .stat input[type="range"]{
+      width:100%;
+      accent-color: var(--accent);
+    }
+    .stat output{
+      font-variant-numeric: tabular-nums;
+      text-align:right;
+      padding:6px 8px;
+      border:1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(0,0,0,.18);
+    }
+
+    /* Abilities row */
+    .abilities{
+      display:grid;
+      grid-template-columns: repeat(8, minmax(0,1fr));
+      gap:10px;
+    }
+    .ability{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      border-radius: 14px;
+      padding:10px;
+      display:flex; flex-direction:column; gap:6px;
+      min-width:0;
+    }
+    .ability label{ font-size:12px; color:var(--muted); }
+    .ability input{
+      width:100%;
+      padding:10px 10px;
+      border-radius: 12px;
+      border:1px solid var(--line2);
+      background: rgba(0,0,0,.18);
+      color:var(--text);
+      font-weight:700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Lower editable sections */
+    .sections{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:14px;
+    }
+    .table{
+      width:100%;
+      border-collapse: collapse;
+      overflow:hidden;
+      border-radius: 12px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.10);
+    }
+    .table th, .table td{
+      border-bottom:1px solid var(--line);
+      border-right:1px solid var(--line);
+      padding:10px 10px;
+      font-size:13px;
+      vertical-align:top;
+    }
+    .table th{
+      color:var(--muted);
+      font-weight:700;
+      background: rgba(255,255,255,.03);
+      white-space:nowrap;
+    }
+    .table td:last-child, .table th:last-child{ border-right:none; }
+    .table tr:last-child td{ border-bottom:none; }
+    .cellInput{
+      width:100%;
+      border:1px solid var(--line2);
+      background: rgba(0,0,0,.18);
+      color:var(--text);
+      padding:9px 10px;
+      border-radius: 10px;
+      outline:none;
+      font-size:13px;
+    }
+    .mutedNote{ color:var(--muted); font-size:12px; margin-top:6px; }
+
+    /* Responsive */
+    @media (max-width: 960px){
+      .grid{ grid-template-columns: 1fr; }
+      .rightTop{ grid-template-columns: 1fr; }
+      .abilities{ grid-template-columns: repeat(4, minmax(0,1fr)); }
+    }
+    @media (max-width: 520px){
+      .abilities{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .formGrid{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title">
+        <div>NW キャラクターメイキング</div>
+        <small>モック（UI/レイアウト確認用）</small>
+      </div>
+      <div class="chip">自動反映：上段（画像/文字/レーダー/基本能力）｜ 手入力：下段</div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: portrait -->
+      <section class="panel">
+        <div class="hd">
+          <b>キャラクター画像</b>
+          <span class="chip" style="padding:6px 10px;">左上</span>
+        </div>
+        <div class="bd portrait">
+          <div class="portraitBox" id="portraitBox">
+            <img id="portraitImg" alt="portrait" />
+            <div class="hint" id="portraitHint">
+              <div style="font-weight:800; color:rgba(255,255,255,.85)">画像を差し込む</div>
+              <div style="font-size:12px">PNG/JPG推奨。クリックでも選べるよ。</div>
+            </div>
+          </div>
+
+          <input id="portraitFile" type="file" accept="image/*" />
+          <div class="btnRow">
+            <button class="primary" id="btnPick">画像を選ぶ</button>
+            <button class="danger" id="btnClear">削除</button>
+          </div>
+
+          <div class="mutedNote">
+            ※このモックはローカルで完結。将来は画像をBase64で保存したり、IndexedDBに突っ込んだりできる。
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: info + radar -->
+      <section class="panel">
+        <div class="hd">
+          <b>キャラ情報 & 戦闘値レーダー</b>
+          <span class="chip" style="padding:6px 10px;">右側</span>
+        </div>
+
+        <div class="bd">
+          <div class="rightTop">
+            <!-- Text info -->
+            <div class="panel" style="box-shadow:none;">
+              <div class="hd"><b>文字情報（自動反映）</b><span class="chip" style="padding:6px 10px;">右上</span></div>
+              <div class="bd" style="background:rgba(0,0,0,.06)">
+                <div class="formGrid">
+                  <div class="field full">
+                    <label>名前</label>
+                    <input id="name" placeholder="例：霧崎タクミ" />
+                  </div>
+
+                  <div class="field">
+                    <label>ウィザードクラス</label>
+                    <input id="wclass" placeholder="例：竜騎士" />
+                  </div>
+                  <div class="field">
+                    <label>スタイルクラス</label>
+                    <input id="sclass" placeholder="例：アタッカー" />
+                  </div>
+
+                  <div class="field">
+                    <label>属性</label>
+                    <input id="element" placeholder="例：火 / 火" />
+                  </div>
+                  <div class="field">
+                    <label>総合レベル</label>
+                    <input id="level" type="number" min="1" value="1" />
+                  </div>
+
+                  <div class="field full">
+                    <label>メモ（任意）</label>
+                    <input id="memo" placeholder="例：『拳で語る竜騎士』とか" />
+                  </div>
+                </div>
+
+                <div class="miniRow" style="margin-top:12px">
+                  <div class="pill">表示名：<b id="dispName">（未入力）</b></div>
+                  <div class="pill">クラス：<b id="dispClass">—</b></div>
+                  <div class="pill">属性：<b id="dispElem">—</b></div>
+                  <div class="pill">Lv：<b id="dispLv">1</b></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Radar -->
+            <div class="panel" style="box-shadow:none;">
+              <div class="hd"><b>戦闘値（レーダーチャート）</b><span class="chip" style="padding:6px 10px;">右下</span></div>
+              <div class="bd radarWrap" style="background:rgba(0,0,0,.06)">
+                <canvas id="radar" class="radarCanvas" width="640" height="640"></canvas>
+
+                <div class="statList" id="stats">
+                  <!-- sliders inserted by JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Abilities row -->
+          <div class="panel" style="box-shadow:none; margin-top:14px;">
+            <div class="hd"><b>基本能力値（自動反映）</b><span class="chip" style="padding:6px 10px;">1行</span></div>
+            <div class="bd" style="background:rgba(0,0,0,.06)">
+              <div class="abilities">
+                <div class="ability"><label>筋力</label><input class="abi" id="abi_str" type="number" value="15" /></div>
+                <div class="ability"><label>器用</label><input class="abi" id="abi_dex" type="number" value="10" /></div>
+                <div class="ability"><label>敏捷</label><input class="abi" id="abi_agi" type="number" value="8" /></div>
+                <div class="ability"><label>精神</label><input class="abi" id="abi_mnd" type="number" value="6" /></div>
+                <div class="ability"><label>知力</label><input class="abi" id="abi_int" type="number" value="4" /></div>
+                <div class="ability"><label>信仰</label><input class="abi" id="abi_fai" type="number" value="5" /></div>
+                <div class="ability"><label>知覚</label><input class="abi" id="abi_per" type="number" value="8" /></div>
+                <div class="ability"><label>幸運</label><input class="abi" id="abi_luk" type="number" value="7" /></div>
+              </div>
+
+              <div class="miniRow" style="margin-top:12px">
+                <div class="pill">能力合計：<b id="abiSum">—</b></div>
+                <div class="pill">メモ：<b id="abiHint">戦闘値と連動させるならここから計算ロジック足す</b></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </div>
+
+    <!-- LOWER: manual input sections -->
+    <div class="sections">
+
+      <section class="panel">
+        <div class="hd">
+          <b>所持品（手入力）</b>
+          <span class="chip">ここから下は自分で入れる</span>
+        </div>
+        <div class="bd">
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="width:28%">名称</th>
+                <th style="width:12%">重量</th>
+                <th>効果</th>
+                <th style="width:14%">参照</th>
+              </tr>
+            </thead>
+            <tbody id="itemsBody">
+              <!-- rows by JS -->
+            </tbody>
+          </table>
+          <div class="mutedNote">※「行追加」はUIだけ。保存はまだ（次フェーズでlocalStorage/IndexedDB）。</div>
+          <div class="btnRow" style="margin-top:10px;">
+            <button id="addItem">行追加</button>
+            <button class="danger" id="clearItems">全消し</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="hd"><b>特殊能力（手入力）</b><span class="chip">表形式</span></div>
+        <div class="bd">
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="width:22%">名称</th>
+                <th style="width:8%">SL</th>
+                <th style="width:12%">タイミング</th>
+                <th style="width:12%">判定</th>
+                <th style="width:10%">射程</th>
+                <th style="width:10%">代償</th>
+                <th>効果</th>
+              </tr>
+            </thead>
+            <tbody id="skillsBody"></tbody>
+          </table>
+          <div class="btnRow" style="margin-top:10px;">
+            <button id="addSkill">行追加</button>
+            <button class="danger" id="clearSkills">全消し</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="hd"><b>魔法（手入力）</b><span class="chip">枠だけ</span></div>
+        <div class="bd">
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="width:22%">名称</th>
+                <th style="width:10%">Lv</th>
+                <th style="width:12%">種別</th>
+                <th style="width:12%">タイミング</th>
+                <th style="width:10%">射程</th>
+                <th style="width:10%">代償</th>
+                <th>効果</th>
+              </tr>
+            </thead>
+            <tbody id="spellsBody"></tbody>
+          </table>
+          <div class="btnRow" style="margin-top:10px;">
+            <button id="addSpell">行追加</button>
+            <button class="danger" id="clearSpells">全消し</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+<script>
+  // ---------------------------
+  // UI: Portrait
+  // ---------------------------
+  const portraitBox = document.getElementById('portraitBox');
+  const portraitFile = document.getElementById('portraitFile');
+  const portraitImg  = document.getElementById('portraitImg');
+  const portraitHint = document.getElementById('portraitHint');
+  document.getElementById('btnPick').addEventListener('click', () => portraitFile.click());
+  document.getElementById('btnClear').addEventListener('click', () => {
+    portraitImg.src = '';
+    portraitImg.style.display = 'none';
+    portraitHint.style.display = 'flex';
+    portraitFile.value = '';
+  });
+  portraitBox.addEventListener('click', () => portraitFile.click());
+  portraitFile.addEventListener('change', (e) => {
+    const f = e.target.files?.[0];
+    if(!f) return;
+    const url = URL.createObjectURL(f);
+    portraitImg.src = url;
+    portraitImg.style.display = 'block';
+    portraitHint.style.display = 'none';
+  });
+
+  // ---------------------------
+  // UI: Header display sync
+  // ---------------------------
+  const nameEl = document.getElementById('name');
+  const wclassEl = document.getElementById('wclass');
+  const sclassEl = document.getElementById('sclass');
+  const elemEl = document.getElementById('element');
+  const lvEl = document.getElementById('level');
+
+  const dispName = document.getElementById('dispName');
+  const dispClass = document.getElementById('dispClass');
+  const dispElem = document.getElementById('dispElem');
+  const dispLv = document.getElementById('dispLv');
+
+  function syncHeader(){
+    const n = nameEl.value.trim();
+    dispName.textContent = n ? n : '（未入力）';
+    const wc = wclassEl.value.trim();
+    const sc = sclassEl.value.trim();
+    dispClass.textContent = (wc || sc) ? `${wc || '—'} / ${sc || '—'}` : '—';
+    dispElem.textContent = elemEl.value.trim() || '—';
+    dispLv.textContent = lvEl.value || '1';
+  }
+  [nameEl,wclassEl,sclassEl,elemEl,lvEl].forEach(el => el.addEventListener('input', syncHeader));
+  syncHeader();
+
+  // ---------------------------
+  // Radar chart (canvas)
+  // ---------------------------
+  const radar = document.getElementById('radar');
+  const ctx = radar.getContext('2d');
+
+  const STAT_DEFS = [
+    { key:'hit',   label:'命中',     max: 30, value: 14 },
+    { key:'eva',   label:'回避',     max: 30, value: 12 },
+    { key:'atk',   label:'攻撃',     max: 40, value: 34 },
+    { key:'def',   label:'防御',     max: 30, value: 16 },
+    { key:'mag',   label:'魔導',     max: 30, value: 7  },
+    { key:'res',   label:'抵抗',     max: 30, value: 9  },
+    { key:'end',   label:'耐久力',   max: 40, value: 32 },
+    { key:'act',   label:'行動値',   max: 30, value: 14 },
+  ];
+
+  const statsContainer = document.getElementById('stats');
+
+  function makeSliderRow(def){
+    const row = document.createElement('div');
+    row.className = 'stat';
+
+    const name = document.createElement('span');
+    name.textContent = def.label;
+
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = 0;
+    slider.max = def.max;
+    slider.value = def.value;
+
+    const out = document.createElement('output');
+    out.value = def.value;
+
+    slider.addEventListener('input', () => {
+      def.value = Number(slider.value);
+      out.value = slider.value;
+      drawRadar();
+    });
+
+    row.appendChild(name);
+    row.appendChild(slider);
+    row.appendChild(out);
+    statsContainer.appendChild(row);
+  }
+
+  STAT_DEFS.forEach(makeSliderRow);
+
+  function drawRadar(){
+    // scale for HiDPI
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    const cssSize = radar.getBoundingClientRect().width;
+    radar.width = Math.round(cssSize * dpr);
+    radar.height = Math.round(cssSize * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+
+    const w = cssSize;
+    const h = cssSize;
+    ctx.clearRect(0,0,w,h);
+
+    const cx = w/2, cy = h/2;
+    const pad = 46;
+    const radius = Math.min(w,h)/2 - pad;
+
+    const N = STAT_DEFS.length;
+    const angles = Array.from({length:N}, (_,i) => (-Math.PI/2) + i * (2*Math.PI/N));
+
+    // grid rings
+    const rings = 5;
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(255,255,255,.14)';
+    for(let r=1;r<=rings;r++){
+      const rr = radius * (r/rings);
+      ctx.beginPath();
+      angles.forEach((a, i) => {
+        const x = cx + Math.cos(a)*rr;
+        const y = cy + Math.sin(a)*rr;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.closePath();
+      ctx.stroke();
+    }
+
+    // axes
+    ctx.strokeStyle = 'rgba(255,255,255,.16)';
+    angles.forEach(a=>{
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.lineTo(cx + Math.cos(a)*radius, cy + Math.sin(a)*radius);
+      ctx.stroke();
+    });
+
+    // labels
+    ctx.fillStyle = 'rgba(255,255,255,.78)';
+    ctx.font = '12px ui-sans-serif, system-ui, sans-serif';
+    angles.forEach((a,i)=>{
+      const lx = cx + Math.cos(a)*(radius + 18);
+      const ly = cy + Math.sin(a)*(radius + 18);
+      ctx.textAlign = Math.cos(a) > 0.25 ? 'left' : (Math.cos(a) < -0.25 ? 'right' : 'center');
+      ctx.textBaseline = Math.sin(a) > 0.25 ? 'top' : (Math.sin(a) < -0.25 ? 'bottom' : 'middle');
+      ctx.fillText(STAT_DEFS[i].label, lx, ly);
+    });
+
+    // polygon
+    const pts = STAT_DEFS.map((def,i)=>{
+      const t = def.max ? (def.value/def.max) : 0;
+      const rr = radius * Math.max(0, Math.min(1, t));
+      return [cx + Math.cos(angles[i])*rr, cy + Math.sin(angles[i])*rr];
+    });
+
+    // fill
+    ctx.beginPath();
+    pts.forEach(([x,y],i)=> i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y));
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(124,240,255,.18)';
+    ctx.fill();
+
+    // stroke
+    ctx.strokeStyle = 'rgba(124,240,255,.78)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // points
+    ctx.fillStyle = 'rgba(184,255,106,.85)';
+    pts.forEach(([x,y])=>{
+      ctx.beginPath();
+      ctx.arc(x,y,3.2,0,Math.PI*2);
+      ctx.fill();
+    });
+
+    // title
+    ctx.fillStyle = 'rgba(255,255,255,.88)';
+    ctx.font = '700 14px ui-sans-serif, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('戦闘値', cx, 12);
+  }
+
+  window.addEventListener('resize', drawRadar);
+  drawRadar();
+
+  // ---------------------------
+  // Abilities sum
+  // ---------------------------
+  const abiInputs = [...document.querySelectorAll('.abi')];
+  const abiSumEl = document.getElementById('abiSum');
+  function calcAbiSum(){
+    const sum = abiInputs.reduce((a,el)=> a + (Number(el.value)||0), 0);
+    abiSumEl.textContent = sum;
+  }
+  abiInputs.forEach(el => el.addEventListener('input', calcAbiSum));
+  calcAbiSum();
+
+  // ---------------------------
+  // Tables (manual inputs)
+  // ---------------------------
+  function addRow(tbody, cols){
+    const tr = document.createElement('tr');
+    cols.forEach((ph)=> {
+      const td = document.createElement('td');
+      const input = document.createElement('input');
+      input.className = 'cellInput';
+      input.placeholder = ph;
+      td.appendChild(input);
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  }
+  function clearBody(tbody){ tbody.innerHTML=''; }
+
+  const itemsBody = document.getElementById('itemsBody');
+  const skillsBody = document.getElementById('skillsBody');
+  const spellsBody = document.getElementById('spellsBody');
+
+  // initial rows
+  for(let i=0;i<4;i++) addRow(itemsBody, ['名称','重量','効果','参照']);
+  for(let i=0;i<4;i++) addRow(skillsBody, ['名称','SL','タイミング','判定','射程','代償','効果']);
+  for(let i=0;i<3;i++) addRow(spellsBody, ['名称','Lv','種別','タイミング','射程','代償','効果']);
+
+  document.getElementById('addItem').addEventListener('click', ()=> addRow(itemsBody, ['名称','重量','効果','参照']));
+  document.getElementById('clearItems').addEventListener('click', ()=> clearBody(itemsBody));
+
+  document.getElementById('addSkill').addEventListener('click', ()=> addRow(skillsBody, ['名称','SL','タイミング','判定','射程','代償','効果']));
+  document.getElementById('clearSkills').addEventListener('click', ()=> clearBody(skillsBody));
+
+  document.getElementById('addSpell').addEventListener('click', ()=> addRow(spellsBody, ['名称','Lv','種別','タイミング','射程','代償','効果']));
+  document.getElementById('clearSpells').addEventListener('click', ()=> clearBody(spellsBody));
+</script>
+</body>
+</html>
