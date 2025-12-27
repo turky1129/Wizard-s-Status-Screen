@@ -76,10 +76,14 @@
     }
     /* Card / panel styling */
     .panel {
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      /* Give panels a subtle layered glow effect */
+      background: linear-gradient(180deg, rgba(40,50,70,.55), rgba(20,25,40,.55)),
+        radial-gradient(800px 400px at 30% -10%, rgba(124,240,255,.05), transparent 70%),
+        radial-gradient(800px 400px at 70% 110%, rgba(184,255,106,.04), transparent 70%);
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      /* stack multiple shadows to create depth and accent coloration */
+      box-shadow: var(--shadow), 0 0 12px rgba(124,240,255,.05), 0 0 20px rgba(184,255,106,.04);
       overflow: hidden;
     }
     .panel .hd {
@@ -98,10 +102,17 @@
       padding: 14px;
     }
 
+    /* Hide all panel headers and section chips to declutter the UI */
+    .panel > .hd,
+    .panel .hd {
+      display: none;
+    }
+
     /* Grid layout for main columns */
     .grid {
       display: grid;
-      grid-template-columns: 320px 1fr;
+      /* expand the left column further to allow a larger portrait and radar chart */
+      grid-template-columns: 480px 1fr;
       gap: 14px;
       align-items: start;
     }
@@ -114,7 +125,9 @@
     }
     .portraitBox {
       width: 100%;
-      aspect-ratio: 4 / 5;
+      /* Slightly reduce the height of the portrait.  A larger aspect‑ratio yields a shorter box for the same width. */
+      /* width / height = 6 / 5  -> for a 480px wide image the height becomes 400px */
+      aspect-ratio: 6 / 5;
       border-radius: var(--radius2);
       border: 1px solid var(--line2);
       background:
@@ -190,6 +203,31 @@
       grid-template-columns: 1.4fr 0.9fr 1.1fr 0.7fr 1.1fr 0.7fr 1.3fr 1.3fr 0.7fr 0.7fr;
       gap: 10px;
       align-items: end;
+    }
+
+    /* Status grid for left column */
+    .statusGridLeft {
+      display: grid;
+      /* Two columns layout for character info */
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+    .statusGridLeft .barWrap {
+      /* HP/MP bars span full width */
+      grid-column: span 2;
+    }
+
+    /* Emphasize result rows in the combat table */
+    #combatTable tbody tr.result-row td,
+    #combatTable tbody tr.result-row .numOut {
+      background: rgba(124,240,255,.07);
+      font-weight: 750;
+    }
+    #combatTable tbody tr.result-row.equipped td,
+    #combatTable tbody tr.result-row.equipped .numOut {
+      background: rgba(124,240,255,.12);
+      font-weight: 800;
     }
     .sField {
       display: flex;
@@ -396,6 +434,14 @@
       background: rgba(0,0,0,.18);
     }
 
+    /* Reduce vertical spacing around status selectors and radar */
+    .statusLeft {
+      margin-top: 12px;
+    }
+    .statusLeft .miniRow {
+      margin-top: 4px;
+    }
+
     /* Basic ability grid */
     .abilities {
       display: grid;
@@ -433,6 +479,64 @@
       display: grid;
       grid-template-columns: 1fr;
       gap: 14px;
+    }
+
+    /* Section title for lower tables and personality */
+    .sectionTitle {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--muted);
+    }
+    .sectionTitle::before {
+      content: '▼';
+      margin-right: 4px;
+      color: var(--accent);
+    }
+
+    /* Personality styling */
+    /* Replace the 4-column grid with a two-column wrap to evoke a character sheet. */
+    .personalityWrap {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      /* reduce gap between the two columns to compress vertical height */
+      gap: 14px;
+    }
+    .personalityCol {
+      display: flex;
+      flex-direction: column;
+      /* tighter spacing between fields to reduce overall height */
+      gap: 6px;
+    }
+    /* Each field within the personality columns inherits from pField styling */
+    .personalityCol .pField {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+    /* Maintain pField default for legacy usages */
+    .pField {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+    .pField label {
+      font-size: 10px;
+      color: var(--muted);
+    }
+    .pField input {
+      width: 100%;
+      border: 1px solid var(--line2);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      /* further reduce padding to compress height */
+      padding: 6px 8px;
+      /* reduce border radius to match compact design */
+      border-radius: 8px;
+      outline: none;
+      min-width: 0;
     }
     .tableWrap2 {
       border-radius: 12px;
@@ -520,7 +624,110 @@
             <button class="primary" id="btnPick">画像を選ぶ</button>
             <button class="danger" id="btnClear">削除</button>
           </div>
-          <div class="mutedNote">ドラッグ＆ドロップにも対応予定。</div>
+
+    <!-- ステータス選択とバーを左カラムに移動 -->
+    <div class="statusLeft">
+      <div class="statusGridLeft">
+        <!-- Name -->
+        <div class="sField">
+          <label>氏名</label>
+          <input id="name" placeholder="例：霧崎タクミ" />
+        </div>
+        <!-- Attribute -->
+        <div class="sField">
+          <label>属性</label>
+          <select id="element">
+            <!-- options will be populated by initElementOptions() -->
+          </select>
+        </div>
+        <!-- Wizard class -->
+        <div class="sField">
+          <label>ウィザードクラス</label>
+          <!-- Options will be populated dynamically based on CLASS_RAW -->
+          <select id="wclass"></select>
+        </div>
+        <!-- Wizard class level -->
+        <div class="sField">
+          <label>Lv（WC）</label>
+          <select id="wlv">
+            <option value="1" selected>Lv1</option>
+            <option value="2">Lv2</option>
+            <option value="3">Lv3</option>
+            <option value="4">Lv4</option>
+            <option value="5">Lv5</option>
+            <option value="6">Lv6</option>
+            <option value="7">Lv7</option>
+            <option value="8">Lv8</option>
+            <option value="9">Lv9</option>
+            <option value="10">Lv10</option>
+          </select>
+        </div>
+        <!-- Style class -->
+        <div class="sField">
+          <label>スタイルクラス</label>
+          <select id="sclass">
+            <option value="">選択…</option>
+            <option value="アタッカー">アタッカー</option>
+            <option value="ディフェンダー">ディフェンダー</option>
+            <option value="キャスター">キャスター</option>
+            <option value="サポーター">サポーター</option>
+            <option value="ヒーラー">ヒーラー</option>
+            <option value="その他">その他</option>
+          </select>
+        </div>
+        <!-- Style class level -->
+        <div class="sField">
+          <label>Lv（SC）</label>
+          <select id="slv">
+            <option value="1" selected>Lv1</option>
+            <option value="2">Lv2</option>
+            <option value="3">Lv3</option>
+            <option value="4">Lv4</option>
+            <option value="5">Lv5</option>
+            <option value="6">Lv6</option>
+            <option value="7">Lv7</option>
+            <option value="8">Lv8</option>
+            <option value="9">Lv9</option>
+            <option value="10">Lv10</option>
+          </select>
+        </div>
+        <!-- HP bar -->
+        <div class="barWrap">
+          <div class="barHead"><span>HP</span><span id="hpText">27 / 27</span></div>
+          <div class="bar hp"><i id="hpFill"></i><div class="barTxt" id="hpBarTxt">HP</div></div>
+        </div>
+        <!-- MP bar -->
+        <div class="barWrap">
+          <div class="barHead"><span>MP</span><span id="mpText">17 / 17</span></div>
+          <div class="bar"><i id="mpFill"></i><div class="barTxt" id="mpBarTxt">MP</div></div>
+        </div>
+        <!-- Move value (auto) -->
+        <div class="sField">
+          <label>移動</label>
+          <input id="moveShow" value="2" />
+        </div>
+        <!-- C値 (crit) value -->
+        <div class="sField">
+          <label>C値</label>
+          <input id="cShow" value="6" />
+        </div>
+      </div>
+      <div class="miniRow">
+        <div class="pill">表示：<b id="dispLine">（未入力）</b></div>
+      </div>
+    </div>
+          <!-- Radar chart moved here from the right panel -->
+          <div class="radarSection" style="margin-top:14px; display:flex; flex-direction:column; gap:10px;">
+            <div class="combatHead">
+              <span class="pill">レーダー参照：
+                <select id="radarSource">
+                  <option value="unequipped">未装備</option>
+                  <option value="equipped" selected>装備込み</option>
+                </select>
+              </span>
+            </div>
+            <canvas id="radar" class="radarCanvas"></canvas>
+          </div>
         </div>
       </section>
 
@@ -531,144 +738,39 @@
         </div>
         <div class="bd">
           <div class="rightStack">
-            <!-- 1行ステータス表示 -->
+            <!-- ステータス行は左カラムに移動 -->
+
+            <!-- パーソナリティ入力 -->
             <div class="panel" style="box-shadow:none;">
-              <div class="hd"><b>文字情報（1行）</b><span class="chip" style="padding:6px 10px;">上</span></div>
               <div class="bd" style="background:rgba(0,0,0,.06)">
-                <div class="statusRow">
-                  <!-- Name -->
-                  <div class="sField">
-                    <label>氏名</label>
-                    <input id="name" placeholder="例：霧崎タクミ" />
+                <div class="sectionTitle">パーソナリティ</div>
+                <!-- Personality split into two columns: left for background and right for appearance -->
+                <div class="personalityWrap">
+                  <div class="personalityCol">
+                    <div class="pField"><label>種族</label><input id="race" placeholder="種族" /></div>
+                    <div class="pField"><label>二つ名</label><input id="alias" placeholder="二つ名" /></div>
+                    <div class="pField"><label>性別</label><input id="gender" placeholder="性別" /></div>
+                    <div class="pField"><label>年齢</label><input id="age" placeholder="年齢" /></div>
+                    <div class="pField"><label>ワークス</label><input id="works" placeholder="ワークス" /></div>
+                    <div class="pField"><label>所属</label><input id="affiliation" placeholder="所属" /></div>
                   </div>
-                  <!-- Attribute -->
-                  <div class="sField">
-                    <label>属性</label>
-                    <select id="element">
-                      <option value="">選択…</option>
-                      <option value="火/火">火/火</option>
-                      <option value="水/水">水/水</option>
-                      <option value="風/風">風/風</option>
-                      <option value="地/地">地/地</option>
-                      <option value="光/光">光/光</option>
-                      <option value="闇/闇">闇/闇</option>
-                      <option value="火/水">火/水</option>
-                      <option value="火/風">火/風</option>
-                      <option value="火/地">火/地</option>
-                      <option value="水/風">水/風</option>
-                      <option value="水/地">水/地</option>
-                      <option value="風/地">風/地</option>
-                      <option value="光/闇">光/闇</option>
-                      <option value="その他">その他</option>
-                    </select>
+                  <div class="personalityCol">
+                    <div class="pField"><label>髪の色</label><input id="hairColor" placeholder="髪の色" /></div>
+                    <div class="pField"><label>任意の項目</label><input id="freeField" placeholder="任意の項目" /></div>
+                    <div class="pField"><label>瞳の色</label><input id="eyeColor" placeholder="瞳の色" /></div>
+                    <div class="pField"><label>肌の色</label><input id="skinColor" placeholder="肌の色" /></div>
+                    <div class="pField"><label>身長</label><input id="height" placeholder="身長" /></div>
+                    <div class="pField"><label>体重</label><input id="weight" placeholder="体重" /></div>
                   </div>
-                  <!-- Wizard class -->
-                  <div class="sField">
-                    <label>ウィザードクラス</label>
-                    <select id="wclass">
-                      <option value="">選択…</option>
-                      <option value="竜騎士">竜騎士</option>
-                      <option value="魔剣使い">魔剣使い</option>
-                      <option value="退魔師">退魔師</option>
-                      <option value="陰陽師">陰陽師</option>
-                      <option value="魔術師">魔術師</option>
-                      <option value="忍者">忍者</option>
-                      <option value="聖職者">聖職者</option>
-                      <option value="その他">その他</option>
-                    </select>
-                  </div>
-                    <!-- Wizard class level -->
-                  <div class="sField">
-                    <label>Lv（WC）</label>
-                    <select id="wlv">
-                      <option value="1" selected>Lv1</option>
-                      <option value="2">Lv2</option>
-                      <option value="3">Lv3</option>
-                      <option value="4">Lv4</option>
-                      <option value="5">Lv5</option>
-                      <option value="6">Lv6</option>
-                      <option value="7">Lv7</option>
-                      <option value="8">Lv8</option>
-                      <option value="9">Lv9</option>
-                      <option value="10">Lv10</option>
-                    </select>
-                  </div>
-                  <!-- Style class -->
-                  <div class="sField">
-                    <label>スタイルクラス</label>
-                    <select id="sclass">
-                      <option value="">選択…</option>
-                      <option value="アタッカー">アタッカー</option>
-                      <option value="ディフェンダー">ディフェンダー</option>
-                      <option value="キャスター">キャスター</option>
-                      <option value="サポーター">サポーター</option>
-                      <option value="ヒーラー">ヒーラー</option>
-                      <option value="その他">その他</option>
-                    </select>
-                  </div>
-                  <!-- Style class level -->
-                  <div class="sField">
-                    <label>Lv（SC）</label>
-                    <select id="slv">
-                      <option value="1" selected>Lv1</option>
-                      <option value="2">Lv2</option>
-                      <option value="3">Lv3</option>
-                      <option value="4">Lv4</option>
-                      <option value="5">Lv5</option>
-                      <option value="6">Lv6</option>
-                      <option value="7">Lv7</option>
-                      <option value="8">Lv8</option>
-                      <option value="9">Lv9</option>
-                      <option value="10">Lv10</option>
-                    </select>
-                  </div>
-                  <!-- HP bar -->
-                  <div class="barWrap">
-                    <div class="barHead"><span>HP</span><span id="hpText">27 / 27</span></div>
-                    <div class="bar hp"><i id="hpFill"></i><div class="barTxt" id="hpBarTxt">HP</div></div>
-                  </div>
-                  <!-- MP bar -->
-                  <div class="barWrap">
-                    <div class="barHead"><span>MP</span><span id="mpText">17 / 17</span></div>
-                    <div class="bar"><i id="mpFill"></i><div class="barTxt" id="mpBarTxt">MP</div></div>
-                  </div>
-                  <!-- Move value (auto) -->
-                  <div class="sField">
-                    <label>移動</label>
-                    <input id="moveShow" value="2" />
-                  </div>
-                  <!-- C値 (crit) value (future) -->
-                  <div class="sField">
-                    <label>C値</label>
-                    <input id="cShow" value="6" />
-                  </div>
-                </div>
-                <div class="miniRow">
-                  <div class="pill">表示：<b id="dispLine">（未入力）</b></div>
-                  <div class="pill">バー = 装備込み HP/MP</div>
                 </div>
               </div>
             </div>
 
-            <!-- 戦闘値：レーダー＋テーブル 2カラム -->
+            <!-- 戦闘値：表のみ（レーダーは左に移動） -->
             <div class="panel" style="box-shadow:none;">
-              <div class="hd"><b>戦闘値（レーダー＋表）</b><span class="chip" style="padding:6px 10px;">中央</span></div>
               <div class="bd" style="background:rgba(0,0,0,.06)">
-                <div class="combatHead">
-                  <span class="pill">レーダー参照：
-                    <select id="radarSource">
-                      <option value="unequipped">未装備</option>
-                      <option value="equipped" selected>装備込み</option>
-                    </select>
-                  </span>
-                  <span class="tag">未装備 = <b>ベース + 特殊</b></span>
-                  <span class="tag">装備込み = <b>未装備 + 装備</b></span>
-                </div>
-                <div class="combatGrid">
-                  <canvas id="radar" class="radarCanvas"></canvas>
-                  <div>
-                    <div class="tableWrap">
-                      <table id="combatTable">
+                <div class="tableWrap">
+                  <table id="combatTable">
                         <thead>
                           <tr>
                             <th class="rowHead">戦闘値</th>
@@ -726,7 +828,7 @@
                             <td><input class="numIn" data-row="equip" data-key="mp"   value="0" /></td>
                             <td><input class="numIn" data-row="equip" data-key="heal" value="0" /></td>
                           </tr>
-                          <tr>
+                          <tr class="result-row">
                             <td class="rowHead">未装備（自動）</td>
                             <td><span class="numOut" data-out="unequipped" data-key="hit"></span></td>
                             <td><span class="numOut" data-out="unequipped" data-key="atk"></span></td>
@@ -742,7 +844,7 @@
                             <td><span class="numOut" data-out="unequipped" data-key="mp"></span></td>
                             <td><span class="numOut" data-out="unequipped" data-key="heal"></span></td>
                           </tr>
-                          <tr>
+                          <tr class="result-row equipped">
                             <td class="rowHead">装備込み（自動）</td>
                             <td><span class="numOut" data-out="equipped" data-key="hit"></span></td>
                             <td><span class="numOut" data-out="equipped" data-key="atk"></span></td>
@@ -761,11 +863,8 @@
                         </tbody>
                       </table>
                     </div>
-                    <div class="mutedNote" style="margin-top:8px;">※テーブルは枠内スクロール。ページ全体の見切れを抑制。</div>
                   </div>
                 </div>
-              </div>
-            </div>
 
             <!-- 基本能力値 -->
             <div class="panel" style="box-shadow:none;">
@@ -788,8 +887,8 @@
             <div class="lower">
               <!-- 特殊能力 -->
               <section class="panel">
-                <div class="hd"><b>特殊能力</b><span class="chip" style="padding:6px 10px;">スキル</span></div>
                 <div class="bd">
+                  <div class="sectionTitle">特殊能力</div>
                   <div class="tableWrap2">
                     <table>
                       <thead>
@@ -815,8 +914,8 @@
               </section>
               <!-- 魔法・記憶 -->
               <section class="panel">
-                <div class="hd"><b>魔法・記憶</b><span class="chip" style="padding:6px 10px;">スペル</span></div>
                 <div class="bd">
+                  <div class="sectionTitle">魔法・記憶</div>
                   <div class="tableWrap2">
                     <table>
                       <thead>
@@ -842,8 +941,8 @@
               </section>
               <!-- 武装・魔装・装備 -->
               <section class="panel">
-                <div class="hd"><b>武装・魔装・装備</b><span class="chip" style="padding:6px 10px;">装備</span></div>
                 <div class="bd">
+                  <div class="sectionTitle">装備</div>
                   <div class="tableWrap2">
                     <table>
                       <thead>
@@ -878,8 +977,8 @@
               </section>
               <!-- 所持品 -->
               <section class="panel">
-                <div class="hd"><b>所持品</b><span class="chip" style="padding:6px 10px;">アイテム</span></div>
                 <div class="bd">
+                  <div class="sectionTitle">所持品</div>
                   <div class="tableWrap2">
                     <table>
                       <thead>
@@ -951,6 +1050,233 @@
       el.addEventListener('change', syncLine);
     });
     syncLine();
+
+    // ===== 属性およびクラスデータ =====
+    // Raw arrays of attribute and class statistics. Each attribute entry consists of:
+    // [str, dex, agi, mnd, int, fai, per, luk, hp, mp, hit, atk, mag, matk, eva, def, res, mdef, act]
+    // Each class entry consists of per‐level bonuses for:
+    // [hit, atk, mag, matk, eva, def, res, mdef, act, hp, mp]
+    const ATTR_RAW = {
+      '天/天': [5, 6, 5, 8, 8, 12, 6, 13, 12, 20, 6, 5, 10, 8, 5, 8, 9, 10, 10],
+      '天/冥': [6, 7, 5, 9, 10, 10, 6, 10, 13, 17, 6, 6, 9, 9, 5, 8, 7, 10, 10],
+      '天/地': [8, 6, 4, 9, 7, 11, 7, 11, 15, 16, 6, 7, 10, 8, 5, 9, 7, 9, 10],
+      '天/水': [5, 7, 6, 9, 9, 11, 6, 10, 12, 17, 6, 6, 9, 9, 6, 8, 8, 10, 10],
+      '天/火': [8, 8, 5, 7, 7, 10, 7, 11, 15, 15, 7, 8, 9, 7, 6, 9, 8, 8, 10],
+      '天/風': [6, 9, 4, 8, 8, 10, 8, 10, 13, 16, 8, 7, 9, 8, 6, 8, 7, 9, 9],
+      '天/虚': [5, 7, 5, 10, 7, 10, 7, 12, 12, 15, 7, 6, 11, 8, 6, 7, 8, 8, 9],
+      '冥/天': [6, 8, 7, 11, 11, 6, 6, 8, 13, 15, 7, 7, 9, 11, 6, 6, 7, 8, 10],
+      '冥/冥': [7, 9, 7, 12, 13, 4, 6, 5, 14, 18, 7, 8, 8, 12, 6, 5, 6, 8, 10],
+      '冥/地': [9, 8, 6, 12, 10, 5, 7, 6, 16, 14, 7, 8, 9, 11, 6, 7, 6, 7, 10],
+      '冥/水': [6, 9, 8, 12, 12, 5, 6, 5, 13, 15, 7, 7, 8, 12, 7, 5, 6, 8, 10],
+      '冥/火': [9, 10, 7, 10, 10, 4, 7, 6, 16, 14, 8, 9, 8, 10, 7, 6, 6, 7, 10],
+      '冥/風': [7, 11, 6, 11, 11, 4, 8, 5, 14, 14, 9, 9, 8, 11, 7, 5, 5, 7, 9],
+      '冥/虚': [6, 9, 7, 13, 10, 4, 7, 7, 13, 14, 8, 7, 10, 11, 7, 5, 7, 7, 9],
+      '地/天': [10, 6, 6, 11, 6, 8, 7, 9, 17, 14, 6, 8, 10, 8, 6, 9, 7, 7, 10],
+      '地/冥': [11, 7, 6, 12, 8, 6, 7, 6, 18, 14, 7, 9, 9, 10, 6, 8, 6, 7, 10],
+      '地/地': [13, 6, 5, 12, 5, 7, 8, 7, 20, 17, 7, 9, 9, 8, 6, 10, 6, 6, 10],
+      '地/水': [10, 7, 7, 12, 7, 7, 7, 6, 17, 14, 7, 8, 9, 9, 7, 8, 6, 7, 10],
+      '地/火': [13, 8, 6, 10, 5, 6, 8, 7, 20, 12, 8, 10, 8, 7, 7, 9, 6, 5, 10],
+      '地/風': [11, 9, 5, 11, 6, 6, 9, 6, 18, 13, 9, 10, 8, 8, 7, 8, 5, 6, 9],
+      '地/虚': [10, 7, 6, 13, 5, 6, 8, 8, 17, 12, 7, 8, 10, 9, 7, 8, 7, 5, 9],
+      '水/天': [5, 6, 8, 9, 11, 10, 5, 9, 12, 17, 5, 5, 9, 10, 6, 7, 8, 10, 11],
+      '水/冥': [6, 7, 8, 10, 13, 8, 5, 6, 13, 17, 6, 6, 8, 11, 6, 7, 7, 10, 11],
+      '水/地': [8, 6, 7, 10, 10, 9, 6, 7, 15, 16, 6, 7, 8, 10, 6, 8, 7, 9, 11],
+      '水/水': [5, 7, 9, 10, 12, 9, 5, 6, 12, 20, 6, 6, 8, 11, 7, 7, 7, 10, 11],
+      '水/火': [8, 8, 8, 8, 10, 8, 6, 7, 15, 16, 7, 8, 7, 9, 7, 8, 7, 9, 11],
+      '水/風': [6, 9, 7, 9, 11, 8, 7, 6, 13, 16, 8, 7, 7, 10, 7, 7, 6, 9, 10],
+      '水/虚': [5, 7, 8, 11, 10, 8, 6, 8, 12, 16, 6, 6, 9, 10, 7, 6, 8, 9, 10],
+      '火/天': [12, 8, 8, 7, 5, 7, 7, 9, 19, 13, 7, 10, 8, 6, 7, 9, 8, 6, 10],
+      '火/冥': [13, 9, 8, 8, 7, 5, 7, 6, 20, 13, 8, 11, 7, 7, 7, 9, 7, 6, 11],
+      '火/地': [15, 8, 7, 8, 4, 6, 8, 7, 22, 12, 8, 11, 7, 6, 7, 10, 7, 5, 10],
+      '火/水': [12, 9, 9, 8, 6, 6, 7, 6, 19, 13, 8, 10, 7, 7, 8, 9, 7, 6, 11],
+      '火/火': [15, 10, 8, 6, 4, 5, 8, 7, 22, 14, 9, 12, 6, 5, 8, 10, 7, 4, 10],
+      '火/風': [13, 11, 7, 7, 5, 5, 9, 6, 20, 12, 10, 12, 6, 6, 8, 9, 6, 5, 10],
+      '火/虚': [12, 9, 8, 9, 4, 5, 8, 8, 19, 11, 8, 10, 8, 6, 8, 8, 8, 4, 9],
+      '風/天': [7, 10, 11, 7, 7, 7, 7, 7, 14, 14, 8, 8, 7, 7, 9, 7, 9, 7, 10],
+      '風/冥': [8, 11, 11, 8, 9, 5, 7, 4, 15, 14, 9, 9, 6, 8, 9, 6, 7, 7, 11],
+      '風/地': [10, 10, 10, 8, 6, 6, 8, 5, 17, 13, 9, 10, 6, 7, 9, 8, 7, 6, 10],
+      '風/水': [7, 11, 12, 8, 8, 6, 7, 4, 14, 14, 9, 9, 6, 8, 9, 6, 8, 7, 11],
+      '風/火': [10, 12, 11, 6, 6, 5, 8, 5, 17, 12, 10, 11, 5, 6, 9, 7, 8, 5, 10],
+      '風/風': [8, 13, 10, 7, 7, 5, 9, 4, 15, 17, 11, 10, 5, 7, 9, 6, 7, 6, 10],
+      '風/虚': [7, 11, 11, 9, 6, 5, 8, 6, 14, 12, 9, 9, 7, 7, 9, 6, 8, 5, 9],
+      '虚/天': [7, 7, 11, 6, 5, 6, 8, 13, 14, 12, 7, 7, 9, 5, 9, 6, 12, 5, 9],
+      '虚/冥': [8, 8, 11, 7, 7, 4, 8, 10, 15, 12, 8, 8, 8, 7, 9, 6, 10, 5, 10],
+      '虚/地': [10, 7, 10, 7, 4, 5, 9, 11, 17, 11, 8, 8, 9, 5, 9, 7, 10, 4, 9],
+      '虚/水': [7, 8, 12, 7, 6, 5, 8, 10, 14, 12, 8, 7, 8, 6, 10, 6, 11, 5, 10],
+      '虚/火': [10, 9, 11, 5, 4, 4, 9, 11, 17, 11, 9, 9, 8, 4, 10, 7, 11, 4, 9],
+      '虚/風': [8, 10, 10, 6, 5, 4, 10, 10, 15, 11, 10, 9, 8, 5, 10, 6, 10, 4, 9],
+      '虚/虚': [7, 8, 11, 8, 4, 4, 9, 12, 14, 14, 8, 7, 10, 6, 10, 5, 11, 4, 8],
+    };
+    const CLASS_RAW = {
+      'アタッカー': [3, 4, 0, 0, 2, 2, 0, 0, 2, 5, 2],
+      'キャスター': [0, 0, 3, 4, 0, 0, 2, 2, 2, 2, 5],
+      'ディフェンダー': [2, 2, 2, 0, 0, 4, 0, 3, 0, 6, 1],
+      'ヒーラー': [2, 0, 3, 2, 0, 2, 1, 3, 0, 3, 4],
+      '異能者': [2, 2, 3, 2, 2, 0, 2, 0, 0, 3, 4],
+      '大いなる者': [2, 2, 3, 3, 0, 0, 2, 1, 0, 3, 4],
+      '落とし子': [3, 3, 3, 3, 0, 0, 0, 0, 1, 5, 2],
+      '陰陽師': [0, 0, 2, 2, 2, 0, 3, 4, 0, 2, 5],
+      '吸血鬼': [2, 2, 2, 3, 0, 0, 2, 2, 0, 4, 3],
+      '強化人間': [4, 3, 0, 0, 1, 2, 0, 0, 3, 5, 2],
+      '侍': [4, 3, 2, 0, 1, 0, 0, 0, 3, 5, 2],
+      '使徒': [0, 0, 2, 2, 0, 0, 4, 4, 1, 1, 6],
+      '人造人間': [3, 3, 0, 0, 0, 4, 0, 3, 0, 6, 1],
+      '侵魔召喚師': [0, 0, 3, 3, 0, 0, 3, 3, 1, 2, 5],
+      '人狼': [3, 4, 0, 0, 3, 1, 0, 0, 2, 6, 1],
+      '聖職者': [1, 3, 1, 2, 0, 1, 2, 3, 0, 3, 4],
+      '仙人': [2, 2, 3, 2, 0, 0, 2, 2, 0, 3, 4],
+      '転生者': [2, 2, 1, 2, 1, 2, 1, 2, 0, 4, 3],
+      '同調者': [2, 2, 2, 2, 1, 1, 1, 1, 1, 3, 4],
+      '忍者': [3, 3, 0, 0, 3, 0, 0, 0, 4, 5, 2],
+      '箒騎士': [2, 3, 1, 0, 2, 1, 2, 1, 1, 5, 2],
+      '魔剣使い': [4, 3, 0, 0, 2, 2, 0, 0, 2, 5, 2],
+      '魔術師': [0, 0, 4, 4, 0, 0, 3, 2, 0, 2, 5],
+      '魔物使い': [3, 2, 0, 0, 0, 3, 2, 3, 0, 4, 3],
+      '勇者': [2, 2, 2, 2, 1, 1, 1, 1, 1, 4, 3],
+      '夢使い': [0, 0, 3, 3, 1, 2, 2, 2, 0, 2, 5],
+      '錬金術師': [2, 2, 3, 3, 0, 0, 1, 1, 1, 2, 5],
+      '龍使い': [3, 4, 0, 0, 2, 4, 0, 0, 0, 6, 1],
+    };
+
+    /**
+     * Populate the element (属性) select menu based on available attribute keys.
+     * The default option remains at the top, followed by all keys, then an 'その他' option.
+     */
+    function initElementOptions() {
+      const sel = elemEl;
+      // Clear existing options
+      while (sel.firstChild) sel.removeChild(sel.firstChild);
+      // Default blank option
+      const opt0 = document.createElement('option');
+      opt0.value = '';
+      opt0.textContent = '選択…';
+      sel.appendChild(opt0);
+      // Add each attribute key
+      Object.keys(ATTR_RAW).forEach(key => {
+        const o = document.createElement('option');
+        o.value = key;
+        o.textContent = key;
+        sel.appendChild(o);
+      });
+      // Append 'その他' as last option
+      const other = document.createElement('option');
+      other.value = 'その他';
+      other.textContent = 'その他';
+      sel.appendChild(other);
+    }
+
+    /**
+     * Populate the wizard class select menu based on available class keys.
+     * The default option remains at the top, followed by all keys, then an 'その他' option.
+     */
+    function initClassOptions() {
+      const sel = wclassEl;
+      // Clear existing options
+      while (sel.firstChild) sel.removeChild(sel.firstChild);
+      // Default blank option
+      const opt0 = document.createElement('option');
+      opt0.value = '';
+      opt0.textContent = '選択…';
+      sel.appendChild(opt0);
+      // Add each class name
+      Object.keys(CLASS_RAW).forEach(name => {
+        const o = document.createElement('option');
+        o.value = name;
+        o.textContent = name;
+        sel.appendChild(o);
+      });
+      // Append 'その他' as last option
+      const other = document.createElement('option');
+      other.value = 'その他';
+      other.textContent = 'その他';
+      sel.appendChild(other);
+    }
+
+    // keys for abilities, combat stats and class bonuses
+    const ABI_KEYS   = ['str','dex','agi','mnd','int','fai','per','luk'];
+    const COMBAT_KEYS = ['hit','atk','mag','matk','eva','def','res','mdef','act'];
+    const CLASS_KEYS  = ['hit','atk','mag','matk','eva','def','res','mdef','act','hp','mp'];
+
+    /**
+     * Get detailed attribute data for a given element selection.
+     * Returns null if the element is not defined.
+     */
+    function getAttrData(el) {
+      const arr = ATTR_RAW[el];
+      if (!arr) return null;
+      const abilities = {};
+      ABI_KEYS.forEach((k,i) => { abilities[k] = arr[i]; });
+      const hp = arr[8];
+      const mp = arr[9];
+      const combat = {};
+      COMBAT_KEYS.forEach((k,i) => { combat[k] = arr[10 + i]; });
+      return { abilities, hp, mp, combat };
+    }
+    /**
+     * Get per-level class bonus for a given class name and level.
+     * Returns a mapping of combat keys and hp/mp; missing keys will be undefined.
+     */
+    function getClassBonus(name, level) {
+      const arr = CLASS_RAW[name];
+      const bonus = {};
+      CLASS_KEYS.forEach((k,i) => {
+        bonus[k] = arr ? arr[i] * level : 0;
+      });
+      return bonus;
+    }
+
+    /**
+     * Update basic abilities and base combat values based on selected attribute and classes.
+     */
+    function updateBase() {
+      const elemVal = elemEl.value;
+      const attr = getAttrData(elemVal);
+      if (!attr) return;
+      // Update basic ability inputs
+      document.getElementById('abi_str').value = attr.abilities.str;
+      document.getElementById('abi_dex').value = attr.abilities.dex;
+      document.getElementById('abi_agi').value = attr.abilities.agi;
+      document.getElementById('abi_mnd').value = attr.abilities.mnd;
+      document.getElementById('abi_int').value = attr.abilities.int;
+      document.getElementById('abi_fai').value = attr.abilities.fai;
+      document.getElementById('abi_per').value = attr.abilities.per;
+      document.getElementById('abi_luk').value = attr.abilities.luk;
+      // Compute base combat from attribute
+      const wcName = wclassEl.value;
+      const scName = sclassEl.value;
+      const wl = parseInt(wlvEl.value || '1', 10);
+      const sl = parseInt(slvEl.value || '1', 10);
+      // Start with attribute values
+      const baseVals = {};
+      COMBAT_KEYS.forEach(k => { baseVals[k] = attr.combat[k]; });
+      baseVals.hp = attr.hp;
+      baseVals.mp = attr.mp;
+      // Apply class bonuses
+      const wb = getClassBonus(wcName, wl);
+      const sb = getClassBonus(scName, sl);
+      CLASS_KEYS.forEach(k => {
+        baseVals[k] = (baseVals[k] || 0) + (wb[k] || 0) + (sb[k] || 0);
+      });
+      // Write to base row inputs
+      document.querySelectorAll('.numIn[data-row="base"]').forEach(inp => {
+        const key = inp.dataset.key;
+        let val = baseVals[key];
+        // Provide defaults for move and heal if undefined
+        if (val === undefined) {
+          if (key === 'move') val = 2;
+          else if (key === 'heal') val = 0;
+          else val = 0;
+        }
+        inp.value = val;
+      });
+    }
+    // Trigger base update whenever attribute or class selections change
+    [elemEl, wclassEl, sclassEl, wlvEl, slvEl].forEach(el => {
+      el.addEventListener('change', () => {
+        updateBase();
+        recalcCombat();
+      });
+    });
 
     // ===== 戦闘値計算 =====
     const KEYS = ['hit','atk','mag','matk','eva','def','res','mdef','act','move','hp','mp','heal'];
@@ -1059,11 +1385,17 @@
       const radius = Math.min(cssW, cssH) / 2 - pad;
       const N = RADAR_AXES.length;
       const angles = Array.from({ length: N }, (_, i) => (-Math.PI / 2) + i * (2 * Math.PI / N));
-      // rings
+      // Determine dynamic scale based on current stats
+      // Compute the maximum value across all axes to scale rings and points dynamically
+      const values = RADAR_AXES.map(ax => stats[ax.key] || 0);
+      // Ensure a minimum max value to avoid division by zero
+      const maxVal = Math.max(1, ...values);
+      // Draw rings: 5 concentric circles spaced evenly between 0 and maxVal
       const rings = 5;
       ctx.lineWidth = 1;
       ctx.strokeStyle = 'rgba(255,255,255,.14)';
       for (let r = 1; r <= rings; r++) {
+        // radius fraction corresponds to ring index relative to total rings
         const rr = radius * (r / rings);
         ctx.beginPath();
         angles.forEach((a, i) => {
@@ -1095,7 +1427,8 @@
       // polygon
       const pts = RADAR_AXES.map((ax, i) => {
         const v = stats[ax.key] || 0;
-        const t = ax.max ? (v / ax.max) : 0;
+        // Scale each value relative to the maximum value across all axes
+        const t = maxVal ? (v / maxVal) : 0;
         const rr = radius * Math.max(0, Math.min(1, t));
         return [cx + Math.cos(angles[i]) * rr, cy + Math.sin(angles[i]) * rr];
       });
@@ -1149,6 +1482,38 @@
     function clearBody(tbody) {
       tbody.innerHTML = '';
     }
+
+    /**
+     * Compute equipment bonuses by summing numeric columns in the equipment table
+     * and write the totals into the '装備修正' row of the combat table.
+     * The equipment table columns map as follows:
+     *   命中->hit, 攻撃->atk, 魔導->mag, 魔攻->matk, 回避->eva, 防御->def,
+     *   抵抗->res, 魔防->mdef, 耐久->hp, 魔力->mp, 行動->act, 移動->move
+     */
+    function updateEquipFromTable() {
+      const totals = { hit:0, atk:0, mag:0, matk:0, eva:0, def:0, res:0, mdef:0, hp:0, mp:0, act:0, move:0, heal:0 };
+      const rows = document.querySelectorAll('#equipBody tr');
+      rows.forEach(tr => {
+        const inputs = tr.querySelectorAll('input');
+        // Starting at index 3: 命中, 攻撃, 魔導, 魔攻, 回避, 防御, 抵抗, 魔防, 耐久, 魔力, 行動, 移動
+        const keys = ['hit','atk','mag','matk','eva','def','res','mdef','hp','mp','act','move'];
+        keys.forEach((key, idx) => {
+          const inp = inputs[3 + idx];
+          if (inp) {
+            const val = parseInt(inp.value, 10);
+            if (!isNaN(val)) totals[key] += val;
+          }
+        });
+      });
+      // Write totals into equip row inputs
+      document.querySelectorAll('.numIn[data-row="equip"]').forEach(inp => {
+        const key = inp.dataset.key;
+        const val = totals[key] || 0;
+        inp.value = val;
+      });
+      // Recalculate combat values after updating equipment
+      recalcCombat();
+    }
     const skillBody = document.getElementById('skillBody');
     const spellBody = document.getElementById('spellBody');
     const equipBody = document.getElementById('equipBody');
@@ -1158,18 +1523,40 @@
     for (let i = 0; i < 3; i++) addRow(spellBody, ['名称','Lv','種別','タイミング','判定値','射程','代償','効果']);
     for (let i = 0; i < 3; i++) addRow(equipBody, ['名称','種別','重／Lv','命中','攻撃','魔導','魔攻','回避','防御','抵抗','魔防','耐久','魔力','行動','移動','射程','備考']);
     for (let i = 0; i < 3; i++) addRow(itemBody, ['名称','重量','効果','参照']);
+    // After initializing rows, compute initial equipment bonuses
+    updateEquipFromTable();
     // ボタンイベント
     document.getElementById('addSkillRow').addEventListener('click', () => addRow(skillBody, ['名称','SL','タイミング','判定値','対象','射程','代償','効果']));
     document.getElementById('clearSkillRows').addEventListener('click', () => clearBody(skillBody));
     document.getElementById('addSpellRow').addEventListener('click', () => addRow(spellBody, ['名称','Lv','種別','タイミング','判定値','射程','代償','効果']));
     document.getElementById('clearSpellRows').addEventListener('click', () => clearBody(spellBody));
-    document.getElementById('addEquipRow').addEventListener('click', () => addRow(equipBody, ['名称','種別','重／Lv','命中','攻撃','魔導','魔攻','回避','防御','抵抗','魔防','耐久','魔力','行動','移動','射程','備考']));
-    document.getElementById('clearEquipRows').addEventListener('click', () => clearBody(equipBody));
+    document.getElementById('addEquipRow').addEventListener('click', () => {
+      addRow(equipBody, ['名称','種別','重／Lv','命中','攻撃','魔導','魔攻','回避','防御','抵抗','魔防','耐久','魔力','行動','移動','射程','備考']);
+      updateEquipFromTable();
+    });
+    document.getElementById('clearEquipRows').addEventListener('click', () => {
+      clearBody(equipBody);
+      updateEquipFromTable();
+    });
     document.getElementById('addItemRow').addEventListener('click', () => addRow(itemBody, ['名称','重量','効果','参照']));
     document.getElementById('clearItemRows').addEventListener('click', () => clearBody(itemBody));
 
+    // When any input in the equipment table changes, recompute equipment bonuses
+    document.getElementById('equipBody').addEventListener('input', (e) => {
+      if (e.target && e.target.tagName === 'INPUT') {
+        updateEquipFromTable();
+      }
+    });
+
     // 初回計算・描画
+    // Populate element select options based on the attribute data and perform initial calculations
+    initElementOptions();
+    // Populate wizard class options based on class data
+    initClassOptions();
+    // When the page loads, set base values from the default attribute (if selected) and compute totals
+    updateBase();
     recalcCombat();
+    drawRadar();
   </script>
 </body>
 </html>
