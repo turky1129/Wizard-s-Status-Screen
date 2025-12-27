@@ -3,738 +3,1173 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ナイトウィザード キャラクターメイク（モック）</title>
+  <title>ナイトウィザード キャラクターメイク</title>
   <style>
-    :root{
-      --bg:#0e1116;
-      --panel:#151a22;
-      --panel2:#10141b;
-      --line:rgba(255,255,255,.10);
-      --line2:rgba(255,255,255,.18);
-      --text:rgba(255,255,255,.92);
-      --muted:rgba(255,255,255,.66);
-      --accent:#7cf0ff;
-      --accent2:#b8ff6a;
-      --danger:#ff6a7a;
+    /*
+      ===== Design System =====
+      本ツールはナイトウィザードのキャラメイキングをPCで快適に行えるよう、
+      暗色テーマをベースにカード風UIとレーダーチャートを組み合わせています。
+      レーダーは左固定幅、テーブルは右側スクロールにしており、ウィンドウサイズに
+      よらず潰れないよう調整してあります。
+    */
+    :root {
+      --bg: #0e1116;
+      --line: rgba(255,255,255,0.10);
+      --line2: rgba(255,255,255,0.18);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.66);
+      --accent: #7cf0ff;
+      --accent2: #b8ff6a;
+      --danger: #ff6a7a;
       --shadow: 0 16px 40px rgba(0,0,0,.45);
-      --radius:16px;
-      --radius2:12px;
+      --radius: 16px;
+      --radius2: 12px;
     }
 
-    *{ box-sizing:border-box; }
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+        "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
       background:
-        radial-gradient(1200px 700px at 20% 10%, rgba(124,240,255,.10), transparent 55%),
-        radial-gradient(1000px 700px at 80% 0%, rgba(184,255,106,.08), transparent 50%),
-        radial-gradient(900px 700px at 70% 100%, rgba(255,106,122,.06), transparent 55%),
+        radial-gradient(1400px 900px at 20% 10%, rgba(124,240,255,.10), transparent 55%),
+        radial-gradient(1200px 900px at 80% 0%, rgba(184,255,106,.08), transparent 50%),
+        radial-gradient(1100px 900px at 70% 100%, rgba(255,106,122,.06), transparent 55%),
         var(--bg);
-      color:var(--text);
+      color: var(--text);
     }
-
-    .wrap{ max-width: 1120px; margin: 0 auto; padding: 18px; }
-    .topbar{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:12px; margin-bottom:12px;
+    .wrap {
+      /* PCでは横幅を広げてデッドスペースを削減 */
+      max-width: 1560px;
+      margin: 0 auto;
+      padding: 18px 20px 24px;
     }
-    .title{
-      display:flex; align-items:baseline; gap:10px;
-      font-weight:700; letter-spacing:.02em;
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
     }
-    .title small{ color:var(--muted); font-weight:600; }
-    .chip{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:8px 12px; border:1px solid var(--line);
-      border-radius:999px; background:rgba(255,255,255,.04);
-      color:var(--muted); font-size:12px;
+    .title {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      font-weight: 800;
+      letter-spacing: .02em;
     }
-
-    .grid{
-      display:grid;
-      grid-template-columns: 320px 1fr;
-      gap:14px;
+    .title small {
+      color: var(--muted);
+      font-weight: 650;
     }
-
-    .panel{
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    /* Card / panel styling */
+    .panel {
       background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      border:1px solid var(--line);
+      border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      overflow:hidden;
+      overflow: hidden;
     }
-    .panel .hd{
-      padding:12px 14px;
-      display:flex; align-items:center; justify-content:space-between;
-      border-bottom:1px solid var(--line);
-      background:rgba(255,255,255,.03);
+    .panel .hd {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
     }
-    .panel .hd b{ font-size:13px; letter-spacing:.04em; }
-    .panel .bd{ padding:14px; }
+    .panel .hd b {
+      font-size: 13px;
+      letter-spacing: .04em;
+    }
+    .panel .bd {
+      padding: 14px;
+    }
 
-    /* Left: portrait */
-    .portrait{
-      display:flex; flex-direction:column; gap:12px;
+    /* Grid layout for main columns */
+    .grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 14px;
+      align-items: start;
     }
-    .portraitBox{
-      width:100%;
+
+    /* Left column: image upload */
+    .portrait {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .portraitBox {
+      width: 100%;
       aspect-ratio: 4 / 5;
       border-radius: var(--radius2);
-      border:1px solid var(--line2);
+      border: 1px solid var(--line2);
       background:
         radial-gradient(700px 300px at 30% 0%, rgba(124,240,255,.10), transparent 55%),
         radial-gradient(700px 300px at 70% 100%, rgba(184,255,106,.10), transparent 55%),
         rgba(255,255,255,.02);
-      position:relative;
-      overflow:hidden;
+      position: relative;
+      overflow: hidden;
     }
-    .portraitBox img{
-      position:absolute; inset:0;
-      width:100%; height:100%; object-fit:cover;
-      display:none;
+    .portraitBox img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
     }
-    .portraitBox .hint{
-      position:absolute; inset:0;
-      display:flex; flex-direction:column;
-      align-items:center; justify-content:center;
-      color:var(--muted);
-      gap:8px; text-align:center;
-      padding:16px;
+    .portraitBox .hint {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      gap: 8px;
+      text-align: center;
+      padding: 16px;
     }
-    .btnRow{ display:flex; gap:10px; }
-    button{
-      border:1px solid var(--line2);
-      background:rgba(255,255,255,.04);
-      color:var(--text);
-      padding:10px 12px;
+    .btnRow {
+      display: flex;
+      gap: 10px;
+    }
+    button {
+      border: 1px solid var(--line2);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      padding: 9px 12px;
       border-radius: 12px;
-      font-weight:650;
-      cursor:pointer;
+      font-weight: 700;
+      cursor: pointer;
       transition: transform .05s ease, background .15s ease, border .15s ease;
+      white-space: nowrap;
     }
-    button:hover{ background:rgba(255,255,255,.07); }
-    button:active{ transform: translateY(1px); }
-    button.primary{
+    button:hover { background: rgba(255,255,255,.07); }
+    button:active { transform: translateY(1px); }
+    button.primary {
       border-color: rgba(124,240,255,.45);
       box-shadow: 0 0 0 2px rgba(124,240,255,.10) inset;
     }
-    button.danger{
+    button.danger {
       border-color: rgba(255,106,122,.45);
       color: #ffd5db;
     }
-    input[type="file"]{ display:none; }
-
-    /* Right: info + radar */
-    .rightTop{
-      display:grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap:14px;
+    input[type="file"] { display: none; }
+    .mutedNote {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 6px;
     }
 
-    .formGrid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
+    /* Right column: hierarchical sections */
+    .rightStack {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
     }
-    .field{
-      display:flex; flex-direction:column; gap:6px;
+
+    /* Status row: single row of fields */
+    .statusRow {
+      display: grid;
+      /* 10 columns in PC mode. widen each to avoid overflow */
+      grid-template-columns: 1.4fr 0.9fr 1.1fr 0.7fr 1.1fr 0.7fr 1.3fr 1.3fr 0.7fr 0.7fr;
+      gap: 10px;
+      align-items: end;
     }
-    .field label{
-      font-size:12px; color:var(--muted);
+    .sField {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
     }
-    .field input, .field select, .field textarea{
-      border:1px solid var(--line2);
-      background:rgba(0,0,0,.18);
-      color:var(--text);
-      padding:10px 10px;
+    .sField label {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .sField input,
+    .sField select {
+      width: 100%;
+      border: 1px solid var(--line2);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      padding: 9px 10px;
       border-radius: 12px;
-      outline:none;
+      outline: none;
+      min-width: 0;
     }
-    .field input:focus, .field select:focus, .field textarea:focus{
+    .sField input:focus,
+    .sField select:focus {
       border-color: rgba(124,240,255,.55);
       box-shadow: 0 0 0 3px rgba(124,240,255,.10);
     }
-    .field.full{ grid-column: 1 / -1; }
-    .miniRow{
-      display:flex; gap:10px; flex-wrap:wrap;
-    }
-    .miniRow .pill{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.03);
-      padding:8px 10px;
-      border-radius:999px;
-      font-size:12px;
-      color:var(--muted);
-      display:flex; gap:8px; align-items:center;
-    }
-    .miniRow .pill b{ color:var(--text); }
 
-    .radarWrap{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
-      align-content:start;
+    /* HP/MP bars */
+    .barWrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
     }
-    .radarCanvas{
-      width:100%;
-      aspect-ratio: 1 / 1;
-      border-radius: var(--radius2);
-      border:1px solid var(--line2);
-      background: radial-gradient(600px 600px at 30% 20%, rgba(124,240,255,.08), transparent 55%),
-                  radial-gradient(600px 600px at 70% 80%, rgba(184,255,106,.06), transparent 55%),
-                  rgba(255,255,255,.02);
+    .barHead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
     }
-
-    .statList{ display:flex; flex-direction:column; gap:10px; }
-    .stat{
-      display:grid;
-      grid-template-columns: 70px 1fr 46px;
-      gap:10px; align-items:center;
+    .bar {
+      height: 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line2);
+      background: rgba(0,0,0,.22);
+      overflow: hidden;
+      position: relative;
     }
-    .stat span{ color:var(--muted); font-size:12px; }
-    .stat input[type="range"]{
-      width:100%;
-      accent-color: var(--accent);
+    .bar > i {
+      display: block;
+      height: 100%;
+      width: 50%;
+      background: linear-gradient(90deg, rgba(124,240,255,.95), rgba(184,255,106,.85));
     }
-    .stat output{
+    .bar.hp > i {
+      background: linear-gradient(90deg, rgba(255,106,122,.95), rgba(255,190,90,.85));
+    }
+    .barTxt {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: rgba(255,255,255,.86);
       font-variant-numeric: tabular-nums;
-      text-align:right;
-      padding:6px 8px;
-      border:1px solid var(--line);
-      border-radius: 10px;
-      background: rgba(0,0,0,.18);
+      text-shadow: 0 1px 2px rgba(0,0,0,.45);
+      pointer-events: none;
     }
 
-    /* Abilities row */
-    .abilities{
-      display:grid;
-      grid-template-columns: repeat(8, minmax(0,1fr));
-      gap:10px;
+    .miniRow {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
     }
-    .ability{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.03);
-      border-radius: 14px;
-      padding:10px;
-      display:flex; flex-direction:column; gap:6px;
-      min-width:0;
-    }
-    .ability label{ font-size:12px; color:var(--muted); }
-    .ability input{
-      width:100%;
-      padding:10px 10px;
-      border-radius: 12px;
-      border:1px solid var(--line2);
-      background: rgba(0,0,0,.18);
-      color:var(--text);
-      font-weight:700;
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* Lower editable sections */
-    .sections{
-      margin-top:14px;
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:14px;
-    }
-    .table{
-      width:100%;
-      border-collapse: collapse;
-      overflow:hidden;
-      border-radius: 12px;
-      border:1px solid var(--line);
-      background: rgba(0,0,0,.10);
-    }
-    .table th, .table td{
-      border-bottom:1px solid var(--line);
-      border-right:1px solid var(--line);
-      padding:10px 10px;
-      font-size:13px;
-      vertical-align:top;
-    }
-    .table th{
-      color:var(--muted);
-      font-weight:700;
+    .pill {
+      border: 1px solid var(--line);
       background: rgba(255,255,255,.03);
-      white-space:nowrap;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      white-space: nowrap;
     }
-    .table td:last-child, .table th:last-child{ border-right:none; }
-    .table tr:last-child td{ border-bottom:none; }
-    .cellInput{
-      width:100%;
-      border:1px solid var(--line2);
-      background: rgba(0,0,0,.18);
-      color:var(--text);
-      padding:9px 10px;
-      border-radius: 10px;
-      outline:none;
-      font-size:13px;
-    }
-    .mutedNote{ color:var(--muted); font-size:12px; margin-top:6px; }
+    .pill b { color: var(--text); }
 
-    /* Responsive */
-    @media (max-width: 960px){
-      .grid{ grid-template-columns: 1fr; }
-      .rightTop{ grid-template-columns: 1fr; }
-      .abilities{ grid-template-columns: repeat(4, minmax(0,1fr)); }
+    /* Combat section: 2-column grid in PC mode */
+    .combatHead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
     }
-    @media (max-width: 520px){
-      .abilities{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-      .formGrid{ grid-template-columns: 1fr; }
+    .combatHead select {
+      border: 1px solid var(--line2);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 999px;
+      outline: none;
+      font-weight: 750;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+      font-size: 12px;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .tag b { color: var(--text); }
+
+    /* Set radar and table in grid: left fixed 520px, right fills */
+    .combatGrid {
+      display: grid;
+      grid-template-columns: 520px 1fr;
+      gap: 12px;
+      align-items: start;
+      margin-top: 10px;
+    }
+    .radarCanvas {
+      width: 100%;
+      height: 360px; /* fixed height prevents aspect squish */
+      aspect-ratio: auto;
+      border-radius: var(--radius2);
+      border: 1px solid var(--line2);
+      background:
+        radial-gradient(900px 500px at 30% 20%, rgba(124,240,255,.08), transparent 55%),
+        radial-gradient(900px 500px at 70% 80%, rgba(184,255,106,.06), transparent 55%),
+        rgba(255,255,255,.02);
+    }
+    .tableWrap {
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.10);
+      overflow: auto;
+      max-height: 380px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 720px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      padding: 7px 8px;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    th {
+      color: var(--muted);
+      font-weight: 800;
+      background: rgba(255,255,255,.03);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    td:last-child,
+    th:last-child {
+      border-right: none;
+    }
+    tr:last-child td { border-bottom: none; }
+    .rowHead {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background: rgba(18,22,29,.95);
+      color: rgba(255,255,255,.86);
+      font-weight: 850;
+      border-right: 1px solid var(--line2);
+    }
+    .numIn {
+      width: 56px;
+      border: 1px solid var(--line2);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      padding: 6px 7px;
+      border-radius: 10px;
+      outline: none;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+    .numOut {
+      min-width: 42px;
+      display: inline-block;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      padding: 5px 7px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.18);
+    }
+
+    /* Basic ability grid */
+    .abilities {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0,1fr));
+      gap: 10px;
+    }
+    .ability {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      border-radius: 14px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+    .ability label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .ability input {
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--line2);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Lower sections: Additional tables (special abilities, spells, equipment, items) */
+    .lower {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    .tableWrap2 {
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.10);
+      overflow: auto;
+      max-height: 340px;
+    }
+    .tableWrap2 table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 800px;
+    }
+    .tableWrap2 th,
+    .tableWrap2 td {
+      border-bottom: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      padding: 9px 8px;
+      vertical-align: top;
+      font-size: 13px;
+    }
+    .tableWrap2 th {
+      color: var(--muted);
+      font-weight: 800;
+      background: rgba(255,255,255,.03);
+      white-space: nowrap;
+    }
+    .tableWrap2 td:last-child,
+    .tableWrap2 th:last-child {
+      border-right: none;
+    }
+    .tableWrap2 tr:last-child td {
+      border-bottom: none;
+    }
+    .cellInput {
+      width: 100%;
+      border: 1px solid var(--line2);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      padding: 8px 9px;
+      border-radius: 10px;
+      outline: none;
+      font-size: 13px;
+    }
+
+    @media (max-width: 1200px) {
+      .grid { grid-template-columns: 1fr; }
+      .combatGrid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 980px) {
+      .statusRow { grid-template-columns: 1fr 1fr; }
+      .abilities { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    }
+    @media (max-width: 560px) {
+      .abilities { grid-template-columns: repeat(2, minmax(0,1fr)); }
     }
   </style>
 </head>
-
 <body>
   <div class="wrap">
     <div class="topbar">
       <div class="title">
         <div>NW キャラクターメイキング</div>
-        <small>モック（UI/レイアウト確認用）</small>
+        <small>PC版</small>
       </div>
-      <div class="chip">自動反映：上段（画像/文字/レーダー/基本能力）｜ 手入力：下段</div>
+      <div class="chip">上段：メインUI／下段：入力</div>
     </div>
-
     <div class="grid">
-      <!-- LEFT: portrait -->
+      <!-- 左カラム：画像 -->
       <section class="panel">
         <div class="hd">
-          <b>キャラクター画像</b>
-          <span class="chip" style="padding:6px 10px;">左上</span>
+          <b>キャラクター画像</b><span class="chip" style="padding:6px 10px;">左</span>
         </div>
         <div class="bd portrait">
           <div class="portraitBox" id="portraitBox">
             <img id="portraitImg" alt="portrait" />
             <div class="hint" id="portraitHint">
-              <div style="font-weight:800; color:rgba(255,255,255,.85)">画像を差し込む</div>
-              <div style="font-size:12px">PNG/JPG推奨。クリックでも選べるよ。</div>
+              <div style="font-weight:850; color:rgba(255,255,255,.85)">画像を読み込む</div>
+              <div style="font-size:12px">PNG/JPG推奨、クリックでも選択可。</div>
             </div>
           </div>
-
           <input id="portraitFile" type="file" accept="image/*" />
           <div class="btnRow">
             <button class="primary" id="btnPick">画像を選ぶ</button>
             <button class="danger" id="btnClear">削除</button>
           </div>
-
-          <div class="mutedNote">
-            ※このモックはローカルで完結。将来は画像をBase64で保存したり、IndexedDBに突っ込んだりできる。
-          </div>
+          <div class="mutedNote">ドラッグ＆ドロップにも対応予定。</div>
         </div>
       </section>
 
-      <!-- RIGHT: info + radar -->
+      <!-- 右カラム：ステータスと戦闘値 -->
       <section class="panel">
         <div class="hd">
-          <b>キャラ情報 & 戦闘値レーダー</b>
-          <span class="chip" style="padding:6px 10px;">右側</span>
+          <b>ステータスと戦闘値</b><span class="chip" style="padding:6px 10px;">右</span>
         </div>
-
         <div class="bd">
-          <div class="rightTop">
-            <!-- Text info -->
+          <div class="rightStack">
+            <!-- 1行ステータス表示 -->
             <div class="panel" style="box-shadow:none;">
-              <div class="hd"><b>文字情報（自動反映）</b><span class="chip" style="padding:6px 10px;">右上</span></div>
+              <div class="hd"><b>文字情報（1行）</b><span class="chip" style="padding:6px 10px;">上</span></div>
               <div class="bd" style="background:rgba(0,0,0,.06)">
-                <div class="formGrid">
-                  <div class="field full">
-                    <label>名前</label>
+                <div class="statusRow">
+                  <!-- Name -->
+                  <div class="sField">
+                    <label>氏名</label>
                     <input id="name" placeholder="例：霧崎タクミ" />
                   </div>
-
-                  <div class="field">
-                    <label>ウィザードクラス</label>
-                    <input id="wclass" placeholder="例：竜騎士" />
-                  </div>
-                  <div class="field">
-                    <label>スタイルクラス</label>
-                    <input id="sclass" placeholder="例：アタッカー" />
-                  </div>
-
-                  <div class="field">
+                  <!-- Attribute -->
+                  <div class="sField">
                     <label>属性</label>
-                    <input id="element" placeholder="例：火 / 火" />
+                    <select id="element">
+                      <option value="">選択…</option>
+                      <option value="火/火">火/火</option>
+                      <option value="水/水">水/水</option>
+                      <option value="風/風">風/風</option>
+                      <option value="地/地">地/地</option>
+                      <option value="光/光">光/光</option>
+                      <option value="闇/闇">闇/闇</option>
+                      <option value="火/水">火/水</option>
+                      <option value="火/風">火/風</option>
+                      <option value="火/地">火/地</option>
+                      <option value="水/風">水/風</option>
+                      <option value="水/地">水/地</option>
+                      <option value="風/地">風/地</option>
+                      <option value="光/闇">光/闇</option>
+                      <option value="その他">その他</option>
+                    </select>
                   </div>
-                  <div class="field">
-                    <label>総合レベル</label>
-                    <input id="level" type="number" min="1" value="1" />
+                  <!-- Wizard class -->
+                  <div class="sField">
+                    <label>ウィザードクラス</label>
+                    <select id="wclass">
+                      <option value="">選択…</option>
+                      <option value="竜騎士">竜騎士</option>
+                      <option value="魔剣使い">魔剣使い</option>
+                      <option value="退魔師">退魔師</option>
+                      <option value="陰陽師">陰陽師</option>
+                      <option value="魔術師">魔術師</option>
+                      <option value="忍者">忍者</option>
+                      <option value="聖職者">聖職者</option>
+                      <option value="その他">その他</option>
+                    </select>
                   </div>
-
-                  <div class="field full">
-                    <label>メモ（任意）</label>
-                    <input id="memo" placeholder="例：『拳で語る竜騎士』とか" />
+                    <!-- Wizard class level -->
+                  <div class="sField">
+                    <label>Lv（WC）</label>
+                    <select id="wlv">
+                      <option value="1" selected>Lv1</option>
+                      <option value="2">Lv2</option>
+                      <option value="3">Lv3</option>
+                      <option value="4">Lv4</option>
+                      <option value="5">Lv5</option>
+                      <option value="6">Lv6</option>
+                      <option value="7">Lv7</option>
+                      <option value="8">Lv8</option>
+                      <option value="9">Lv9</option>
+                      <option value="10">Lv10</option>
+                    </select>
+                  </div>
+                  <!-- Style class -->
+                  <div class="sField">
+                    <label>スタイルクラス</label>
+                    <select id="sclass">
+                      <option value="">選択…</option>
+                      <option value="アタッカー">アタッカー</option>
+                      <option value="ディフェンダー">ディフェンダー</option>
+                      <option value="キャスター">キャスター</option>
+                      <option value="サポーター">サポーター</option>
+                      <option value="ヒーラー">ヒーラー</option>
+                      <option value="その他">その他</option>
+                    </select>
+                  </div>
+                  <!-- Style class level -->
+                  <div class="sField">
+                    <label>Lv（SC）</label>
+                    <select id="slv">
+                      <option value="1" selected>Lv1</option>
+                      <option value="2">Lv2</option>
+                      <option value="3">Lv3</option>
+                      <option value="4">Lv4</option>
+                      <option value="5">Lv5</option>
+                      <option value="6">Lv6</option>
+                      <option value="7">Lv7</option>
+                      <option value="8">Lv8</option>
+                      <option value="9">Lv9</option>
+                      <option value="10">Lv10</option>
+                    </select>
+                  </div>
+                  <!-- HP bar -->
+                  <div class="barWrap">
+                    <div class="barHead"><span>HP</span><span id="hpText">27 / 27</span></div>
+                    <div class="bar hp"><i id="hpFill"></i><div class="barTxt" id="hpBarTxt">HP</div></div>
+                  </div>
+                  <!-- MP bar -->
+                  <div class="barWrap">
+                    <div class="barHead"><span>MP</span><span id="mpText">17 / 17</span></div>
+                    <div class="bar"><i id="mpFill"></i><div class="barTxt" id="mpBarTxt">MP</div></div>
+                  </div>
+                  <!-- Move value (auto) -->
+                  <div class="sField">
+                    <label>移動</label>
+                    <input id="moveShow" value="2" />
+                  </div>
+                  <!-- C値 (crit) value (future) -->
+                  <div class="sField">
+                    <label>C値</label>
+                    <input id="cShow" value="6" />
                   </div>
                 </div>
-
-                <div class="miniRow" style="margin-top:12px">
-                  <div class="pill">表示名：<b id="dispName">（未入力）</b></div>
-                  <div class="pill">クラス：<b id="dispClass">—</b></div>
-                  <div class="pill">属性：<b id="dispElem">—</b></div>
-                  <div class="pill">Lv：<b id="dispLv">1</b></div>
+                <div class="miniRow">
+                  <div class="pill">表示：<b id="dispLine">（未入力）</b></div>
+                  <div class="pill">バー = 装備込み HP/MP</div>
                 </div>
               </div>
             </div>
 
-            <!-- Radar -->
+            <!-- 戦闘値：レーダー＋テーブル 2カラム -->
             <div class="panel" style="box-shadow:none;">
-              <div class="hd"><b>戦闘値（レーダーチャート）</b><span class="chip" style="padding:6px 10px;">右下</span></div>
-              <div class="bd radarWrap" style="background:rgba(0,0,0,.06)">
-                <canvas id="radar" class="radarCanvas" width="640" height="640"></canvas>
-
-                <div class="statList" id="stats">
-                  <!-- sliders inserted by JS -->
+              <div class="hd"><b>戦闘値（レーダー＋表）</b><span class="chip" style="padding:6px 10px;">中央</span></div>
+              <div class="bd" style="background:rgba(0,0,0,.06)">
+                <div class="combatHead">
+                  <span class="pill">レーダー参照：
+                    <select id="radarSource">
+                      <option value="unequipped">未装備</option>
+                      <option value="equipped" selected>装備込み</option>
+                    </select>
+                  </span>
+                  <span class="tag">未装備 = <b>ベース + 特殊</b></span>
+                  <span class="tag">装備込み = <b>未装備 + 装備</b></span>
+                </div>
+                <div class="combatGrid">
+                  <canvas id="radar" class="radarCanvas"></canvas>
+                  <div>
+                    <div class="tableWrap">
+                      <table id="combatTable">
+                        <thead>
+                          <tr>
+                            <th class="rowHead">戦闘値</th>
+                            <th>命中</th><th>攻撃</th><th>魔導</th><th>魔攻</th>
+                            <th>回避</th><th>防御</th><th>抵抗</th><th>魔防</th>
+                            <th>行動</th><th>移動</th><th>HP</th><th>MP</th><th>治療</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td class="rowHead">ベース</td>
+                            <td><input class="numIn" data-row="base" data-key="hit"  value="17" /></td>
+                            <td><input class="numIn" data-row="base" data-key="atk"  value="20" /></td>
+                            <td><input class="numIn" data-row="base" data-key="mag"  value="6" /></td>
+                            <td><input class="numIn" data-row="base" data-key="matk" value="7" /></td>
+                            <td><input class="numIn" data-row="base" data-key="eva"  value="12" /></td>
+                            <td><input class="numIn" data-row="base" data-key="def"  value="12" /></td>
+                            <td><input class="numIn" data-row="base" data-key="res"  value="7" /></td>
+                            <td><input class="numIn" data-row="base" data-key="mdef" value="6" /></td>
+                            <td><input class="numIn" data-row="base" data-key="act"  value="15" /></td>
+                            <td><input class="numIn" data-row="base" data-key="move" value="2" /></td>
+                            <td><input class="numIn" data-row="base" data-key="hp"   value="27" /></td>
+                            <td><input class="numIn" data-row="base" data-key="mp"   value="17" /></td>
+                            <td><input class="numIn" data-row="base" data-key="heal" value="0" /></td>
+                          </tr>
+                          <tr>
+                            <td class="rowHead">特殊能力修正</td>
+                            <td><input class="numIn" data-row="skill" data-key="hit"  value="0" /></td>
+                            <td><input class="numIn" data-row="skill" data-key="atk"  value="0" /></td>
+                            <td><input class="numIn" data-row="skill" data-key="mag"  value="0" /></td>
+                            <td><input class="numIn" data-row="skill" data-key="matk" value="0" /></td>
+                            <td><input class="numIn" data-row="skill" data-key="eva"  value="0" /></td>
+                            <td><input class="numIn" data-row="skill" data-key="def"  value="0" /></td>
+                            <td><input class="numIn" data-row="skill" data-key="res"  value="0" /></td>
+                            <td><input class="numIn" data-row="skill" data-key="mdef" value="0" /></td>
+                            <td><input class="numIn" data-row="skill" data-key="act"  value="0" /></td>
+                            <td><input class="numIn" data-row="skill" data-key="move" value="0" /></td>
+                            <td><input class="numIn" data-row="skill" data-key="hp"   value="0" /></td>
+                            <td><input class="numIn" data-row="skill" data-key="mp"   value="0" /></td>
+                            <td><input class="numIn" data-row="skill" data-key="heal" value="0" /></td>
+                          </tr>
+                          <tr>
+                            <td class="rowHead">装備修正</td>
+                            <td><input class="numIn" data-row="equip" data-key="hit"  value="3" /></td>
+                            <td><input class="numIn" data-row="equip" data-key="atk"  value="15" /></td>
+                            <td><input class="numIn" data-row="equip" data-key="mag"  value="0" /></td>
+                            <td><input class="numIn" data-row="equip" data-key="matk" value="0" /></td>
+                            <td><input class="numIn" data-row="equip" data-key="eva"  value="2" /></td>
+                            <td><input class="numIn" data-row="equip" data-key="def"  value="5" /></td>
+                            <td><input class="numIn" data-row="equip" data-key="res"  value="3" /></td>
+                            <td><input class="numIn" data-row="equip" data-key="mdef" value="4" /></td>
+                            <td><input class="numIn" data-row="equip" data-key="act"  value="0" /></td>
+                            <td><input class="numIn" data-row="equip" data-key="move" value="0" /></td>
+                            <td><input class="numIn" data-row="equip" data-key="hp"   value="0" /></td>
+                            <td><input class="numIn" data-row="equip" data-key="mp"   value="0" /></td>
+                            <td><input class="numIn" data-row="equip" data-key="heal" value="0" /></td>
+                          </tr>
+                          <tr>
+                            <td class="rowHead">未装備（自動）</td>
+                            <td><span class="numOut" data-out="unequipped" data-key="hit"></span></td>
+                            <td><span class="numOut" data-out="unequipped" data-key="atk"></span></td>
+                            <td><span class="numOut" data-out="unequipped" data-key="mag"></span></td>
+                            <td><span class="numOut" data-out="unequipped" data-key="matk"></span></td>
+                            <td><span class="numOut" data-out="unequipped" data-key="eva"></span></td>
+                            <td><span class="numOut" data-out="unequipped" data-key="def"></span></td>
+                            <td><span class="numOut" data-out="unequipped" data-key="res"></span></td>
+                            <td><span class="numOut" data-out="unequipped" data-key="mdef"></span></td>
+                            <td><span class="numOut" data-out="unequipped" data-key="act"></span></td>
+                            <td><span class="numOut" data-out="unequipped" data-key="move"></span></td>
+                            <td><span class="numOut" data-out="unequipped" data-key="hp"></span></td>
+                            <td><span class="numOut" data-out="unequipped" data-key="mp"></span></td>
+                            <td><span class="numOut" data-out="unequipped" data-key="heal"></span></td>
+                          </tr>
+                          <tr>
+                            <td class="rowHead">装備込み（自動）</td>
+                            <td><span class="numOut" data-out="equipped" data-key="hit"></span></td>
+                            <td><span class="numOut" data-out="equipped" data-key="atk"></span></td>
+                            <td><span class="numOut" data-out="equipped" data-key="mag"></span></td>
+                            <td><span class="numOut" data-out="equipped" data-key="matk"></span></td>
+                            <td><span class="numOut" data-out="equipped" data-key="eva"></span></td>
+                            <td><span class="numOut" data-out="equipped" data-key="def"></span></td>
+                            <td><span class="numOut" data-out="equipped" data-key="res"></span></td>
+                            <td><span class="numOut" data-out="equipped" data-key="mdef"></span></td>
+                            <td><span class="numOut" data-out="equipped" data-key="act"></span></td>
+                            <td><span class="numOut" data-out="equipped" data-key="move"></span></td>
+                            <td><span class="numOut" data-out="equipped" data-key="hp"></span></td>
+                            <td><span class="numOut" data-out="equipped" data-key="mp"></span></td>
+                            <td><span class="numOut" data-out="equipped" data-key="heal"></span></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <div class="mutedNote" style="margin-top:8px;">※テーブルは枠内スクロール。ページ全体の見切れを抑制。</div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Abilities row -->
-          <div class="panel" style="box-shadow:none; margin-top:14px;">
-            <div class="hd"><b>基本能力値（自動反映）</b><span class="chip" style="padding:6px 10px;">1行</span></div>
-            <div class="bd" style="background:rgba(0,0,0,.06)">
-              <div class="abilities">
-                <div class="ability"><label>筋力</label><input class="abi" id="abi_str" type="number" value="15" /></div>
-                <div class="ability"><label>器用</label><input class="abi" id="abi_dex" type="number" value="10" /></div>
-                <div class="ability"><label>敏捷</label><input class="abi" id="abi_agi" type="number" value="8" /></div>
-                <div class="ability"><label>精神</label><input class="abi" id="abi_mnd" type="number" value="6" /></div>
-                <div class="ability"><label>知力</label><input class="abi" id="abi_int" type="number" value="4" /></div>
-                <div class="ability"><label>信仰</label><input class="abi" id="abi_fai" type="number" value="5" /></div>
-                <div class="ability"><label>知覚</label><input class="abi" id="abi_per" type="number" value="8" /></div>
-                <div class="ability"><label>幸運</label><input class="abi" id="abi_luk" type="number" value="7" /></div>
-              </div>
-
-              <div class="miniRow" style="margin-top:12px">
-                <div class="pill">能力合計：<b id="abiSum">—</b></div>
-                <div class="pill">メモ：<b id="abiHint">戦闘値と連動させるならここから計算ロジック足す</b></div>
+            <!-- 基本能力値 -->
+            <div class="panel" style="box-shadow:none;">
+              <div class="hd"><b>基本能力値</b><span class="chip" style="padding:6px 10px;">下</span></div>
+              <div class="bd" style="background:rgba(0,0,0,.06)">
+                <div class="abilities">
+                  <div class="ability"><label>筋力</label><input class="abi" id="abi_str" type="number" value="10" /></div>
+                  <div class="ability"><label>器用</label><input class="abi" id="abi_dex" type="number" value="10" /></div>
+                  <div class="ability"><label>敏捷</label><input class="abi" id="abi_agi" type="number" value="10" /></div>
+                  <div class="ability"><label>精神</label><input class="abi" id="abi_mnd" type="number" value="8" /></div>
+                  <div class="ability"><label>知力</label><input class="abi" id="abi_int" type="number" value="6" /></div>
+                  <div class="ability"><label>信仰</label><input class="abi" id="abi_fai" type="number" value="6" /></div>
+                  <div class="ability"><label>知覚</label><input class="abi" id="abi_per" type="number" value="8" /></div>
+                  <div class="ability"><label>幸運</label><input class="abi" id="abi_luk" type="number" value="5" /></div>
+                </div>
               </div>
             </div>
-          </div>
 
+            <!-- 下段セクション: 特殊能力 / 魔法 / 武装・魔装・装備 / 所持品 -->
+            <div class="lower">
+              <!-- 特殊能力 -->
+              <section class="panel">
+                <div class="hd"><b>特殊能力</b><span class="chip" style="padding:6px 10px;">スキル</span></div>
+                <div class="bd">
+                  <div class="tableWrap2">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th style="width:20%">名称</th>
+                          <th style="width:6%">SL</th>
+                          <th style="width:10%">タイミング</th>
+                          <th style="width:12%">判定値</th>
+                          <th style="width:10%">対象</th>
+                          <th style="width:10%">射程</th>
+                          <th style="width:10%">代償</th>
+                          <th style="width:22%">効果</th>
+                        </tr>
+                      </thead>
+                      <tbody id="skillBody"></tbody>
+                    </table>
+                  </div>
+                  <div class="btnRow" style="margin-top:8px;">
+                    <button id="addSkillRow">行追加</button>
+                    <button class="danger" id="clearSkillRows">全消し</button>
+                  </div>
+                </div>
+              </section>
+              <!-- 魔法・記憶 -->
+              <section class="panel">
+                <div class="hd"><b>魔法・記憶</b><span class="chip" style="padding:6px 10px;">スペル</span></div>
+                <div class="bd">
+                  <div class="tableWrap2">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th style="width:20%">名称</th>
+                          <th style="width:6%">Lv</th>
+                          <th style="width:10%">種別</th>
+                          <th style="width:12%">タイミング</th>
+                          <th style="width:10%">判定値</th>
+                          <th style="width:10%">射程</th>
+                          <th style="width:10%">代償</th>
+                          <th style="width:22%">効果</th>
+                        </tr>
+                      </thead>
+                      <tbody id="spellBody"></tbody>
+                    </table>
+                  </div>
+                  <div class="btnRow" style="margin-top:8px;">
+                    <button id="addSpellRow">行追加</button>
+                    <button class="danger" id="clearSpellRows">全消し</button>
+                  </div>
+                </div>
+              </section>
+              <!-- 武装・魔装・装備 -->
+              <section class="panel">
+                <div class="hd"><b>武装・魔装・装備</b><span class="chip" style="padding:6px 10px;">装備</span></div>
+                <div class="bd">
+                  <div class="tableWrap2">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th style="width:20%">名称</th>
+                          <th style="width:8%">種別</th>
+                          <th style="width:8%">重／Lv</th>
+                          <th style="width:6%">命中</th>
+                          <th style="width:6%">攻撃</th>
+                          <th style="width:6%">魔導</th>
+                          <th style="width:6%">魔攻</th>
+                          <th style="width:6%">回避</th>
+                          <th style="width:6%">防御</th>
+                          <th style="width:6%">抵抗</th>
+                          <th style="width:6%">魔防</th>
+                          <th style="width:6%">耐久</th>
+                          <th style="width:6%">魔力</th>
+                          <th style="width:6%">行動</th>
+                          <th style="width:6%">移動</th>
+                          <th style="width:6%">射程</th>
+                          <th>備考</th>
+                        </tr>
+                      </thead>
+                      <tbody id="equipBody"></tbody>
+                    </table>
+                  </div>
+                  <div class="btnRow" style="margin-top:8px;">
+                    <button id="addEquipRow">行追加</button>
+                    <button class="danger" id="clearEquipRows">全消し</button>
+                  </div>
+                </div>
+              </section>
+              <!-- 所持品 -->
+              <section class="panel">
+                <div class="hd"><b>所持品</b><span class="chip" style="padding:6px 10px;">アイテム</span></div>
+                <div class="bd">
+                  <div class="tableWrap2">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th style="width:30%">名称</th>
+                          <th style="width:10%">重量</th>
+                          <th style="width:40%">効果</th>
+                          <th style="width:10%">参照</th>
+                        </tr>
+                      </thead>
+                      <tbody id="itemBody"></tbody>
+                    </table>
+                  </div>
+                  <div class="btnRow" style="margin-top:8px;">
+                    <button id="addItemRow">行追加</button>
+                    <button class="danger" id="clearItemRows">全消し</button>
+                  </div>
+                </div>
+              </section>
+            </div> <!-- /lower -->
+          </div>
         </div>
       </section>
-    </div>
+    </div> <!-- /grid -->
+  </div> <!-- /wrap -->
 
-    <!-- LOWER: manual input sections -->
-    <div class="sections">
-
-      <section class="panel">
-        <div class="hd">
-          <b>所持品（手入力）</b>
-          <span class="chip">ここから下は自分で入れる</span>
-        </div>
-        <div class="bd">
-          <table class="table">
-            <thead>
-              <tr>
-                <th style="width:28%">名称</th>
-                <th style="width:12%">重量</th>
-                <th>効果</th>
-                <th style="width:14%">参照</th>
-              </tr>
-            </thead>
-            <tbody id="itemsBody">
-              <!-- rows by JS -->
-            </tbody>
-          </table>
-          <div class="mutedNote">※「行追加」はUIだけ。保存はまだ（次フェーズでlocalStorage/IndexedDB）。</div>
-          <div class="btnRow" style="margin-top:10px;">
-            <button id="addItem">行追加</button>
-            <button class="danger" id="clearItems">全消し</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="hd"><b>特殊能力（手入力）</b><span class="chip">表形式</span></div>
-        <div class="bd">
-          <table class="table">
-            <thead>
-              <tr>
-                <th style="width:22%">名称</th>
-                <th style="width:8%">SL</th>
-                <th style="width:12%">タイミング</th>
-                <th style="width:12%">判定</th>
-                <th style="width:10%">射程</th>
-                <th style="width:10%">代償</th>
-                <th>効果</th>
-              </tr>
-            </thead>
-            <tbody id="skillsBody"></tbody>
-          </table>
-          <div class="btnRow" style="margin-top:10px;">
-            <button id="addSkill">行追加</button>
-            <button class="danger" id="clearSkills">全消し</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="hd"><b>魔法（手入力）</b><span class="chip">枠だけ</span></div>
-        <div class="bd">
-          <table class="table">
-            <thead>
-              <tr>
-                <th style="width:22%">名称</th>
-                <th style="width:10%">Lv</th>
-                <th style="width:12%">種別</th>
-                <th style="width:12%">タイミング</th>
-                <th style="width:10%">射程</th>
-                <th style="width:10%">代償</th>
-                <th>効果</th>
-              </tr>
-            </thead>
-            <tbody id="spellsBody"></tbody>
-          </table>
-          <div class="btnRow" style="margin-top:10px;">
-            <button id="addSpell">行追加</button>
-            <button class="danger" id="clearSpells">全消し</button>
-          </div>
-        </div>
-      </section>
-
-    </div>
-  </div>
-
-<script>
-  // ---------------------------
-  // UI: Portrait
-  // ---------------------------
-  const portraitBox = document.getElementById('portraitBox');
-  const portraitFile = document.getElementById('portraitFile');
-  const portraitImg  = document.getElementById('portraitImg');
-  const portraitHint = document.getElementById('portraitHint');
-  document.getElementById('btnPick').addEventListener('click', () => portraitFile.click());
-  document.getElementById('btnClear').addEventListener('click', () => {
-    portraitImg.src = '';
-    portraitImg.style.display = 'none';
-    portraitHint.style.display = 'flex';
-    portraitFile.value = '';
-  });
-  portraitBox.addEventListener('click', () => portraitFile.click());
-  portraitFile.addEventListener('change', (e) => {
-    const f = e.target.files?.[0];
-    if(!f) return;
-    const url = URL.createObjectURL(f);
-    portraitImg.src = url;
-    portraitImg.style.display = 'block';
-    portraitHint.style.display = 'none';
-  });
-
-  // ---------------------------
-  // UI: Header display sync
-  // ---------------------------
-  const nameEl = document.getElementById('name');
-  const wclassEl = document.getElementById('wclass');
-  const sclassEl = document.getElementById('sclass');
-  const elemEl = document.getElementById('element');
-  const lvEl = document.getElementById('level');
-
-  const dispName = document.getElementById('dispName');
-  const dispClass = document.getElementById('dispClass');
-  const dispElem = document.getElementById('dispElem');
-  const dispLv = document.getElementById('dispLv');
-
-  function syncHeader(){
-    const n = nameEl.value.trim();
-    dispName.textContent = n ? n : '（未入力）';
-    const wc = wclassEl.value.trim();
-    const sc = sclassEl.value.trim();
-    dispClass.textContent = (wc || sc) ? `${wc || '—'} / ${sc || '—'}` : '—';
-    dispElem.textContent = elemEl.value.trim() || '—';
-    dispLv.textContent = lvEl.value || '1';
-  }
-  [nameEl,wclassEl,sclassEl,elemEl,lvEl].forEach(el => el.addEventListener('input', syncHeader));
-  syncHeader();
-
-  // ---------------------------
-  // Radar chart (canvas)
-  // ---------------------------
-  const radar = document.getElementById('radar');
-  const ctx = radar.getContext('2d');
-
-  const STAT_DEFS = [
-    { key:'hit',   label:'命中',     max: 30, value: 14 },
-    { key:'eva',   label:'回避',     max: 30, value: 12 },
-    { key:'atk',   label:'攻撃',     max: 40, value: 34 },
-    { key:'def',   label:'防御',     max: 30, value: 16 },
-    { key:'mag',   label:'魔導',     max: 30, value: 7  },
-    { key:'res',   label:'抵抗',     max: 30, value: 9  },
-    { key:'end',   label:'耐久力',   max: 40, value: 32 },
-    { key:'act',   label:'行動値',   max: 30, value: 14 },
-  ];
-
-  const statsContainer = document.getElementById('stats');
-
-  function makeSliderRow(def){
-    const row = document.createElement('div');
-    row.className = 'stat';
-
-    const name = document.createElement('span');
-    name.textContent = def.label;
-
-    const slider = document.createElement('input');
-    slider.type = 'range';
-    slider.min = 0;
-    slider.max = def.max;
-    slider.value = def.value;
-
-    const out = document.createElement('output');
-    out.value = def.value;
-
-    slider.addEventListener('input', () => {
-      def.value = Number(slider.value);
-      out.value = slider.value;
-      drawRadar();
+  <script>
+    // ===== 画像アップロード =====
+    const portraitBox  = document.getElementById('portraitBox');
+    const portraitFile = document.getElementById('portraitFile');
+    const portraitImg  = document.getElementById('portraitImg');
+    const portraitHint = document.getElementById('portraitHint');
+    document.getElementById('btnPick').addEventListener('click', () => portraitFile.click());
+    document.getElementById('btnClear').addEventListener('click', () => {
+      portraitImg.src = '';
+      portraitImg.style.display = 'none';
+      portraitHint.style.display = 'flex';
+      portraitFile.value = '';
+    });
+    portraitBox.addEventListener('click', () => portraitFile.click());
+    portraitFile.addEventListener('change', (e) => {
+      const f = e.target.files?.[0];
+      if (!f) return;
+      const url = URL.createObjectURL(f);
+      portraitImg.src = url;
+      portraitImg.style.display = 'block';
+      portraitHint.style.display = 'none';
     });
 
-    row.appendChild(name);
-    row.appendChild(slider);
-    row.appendChild(out);
-    statsContainer.appendChild(row);
-  }
-
-  STAT_DEFS.forEach(makeSliderRow);
-
-  function drawRadar(){
-    // scale for HiDPI
-    const dpr = Math.max(1, window.devicePixelRatio || 1);
-    const cssSize = radar.getBoundingClientRect().width;
-    radar.width = Math.round(cssSize * dpr);
-    radar.height = Math.round(cssSize * dpr);
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-
-    const w = cssSize;
-    const h = cssSize;
-    ctx.clearRect(0,0,w,h);
-
-    const cx = w/2, cy = h/2;
-    const pad = 46;
-    const radius = Math.min(w,h)/2 - pad;
-
-    const N = STAT_DEFS.length;
-    const angles = Array.from({length:N}, (_,i) => (-Math.PI/2) + i * (2*Math.PI/N));
-
-    // grid rings
-    const rings = 5;
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = 'rgba(255,255,255,.14)';
-    for(let r=1;r<=rings;r++){
-      const rr = radius * (r/rings);
-      ctx.beginPath();
-      angles.forEach((a, i) => {
-        const x = cx + Math.cos(a)*rr;
-        const y = cy + Math.sin(a)*rr;
-        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-      });
-      ctx.closePath();
-      ctx.stroke();
+    // ===== 文字情報同期 =====
+    const nameEl = document.getElementById('name');
+    const elemEl = document.getElementById('element');
+    const wclassEl = document.getElementById('wclass');
+    const sclassEl = document.getElementById('sclass');
+    const wlvEl = document.getElementById('wlv');
+    const slvEl = document.getElementById('slv');
+    const dispLine = document.getElementById('dispLine');
+    function syncLine() {
+      const n = nameEl.value.trim() || '（未入力）';
+      const e = elemEl.value || '—';
+      const wc = wclassEl.value || '—';
+      const sc = sclassEl.value || '—';
+      const wl = wlvEl.value || '1';
+      const sl = slvEl.value || '1';
+      dispLine.textContent = `${n} / ${e} / ${wc}(Lv${wl}) / ${sc}(Lv${sl})`;
     }
+    [nameEl, elemEl, wclassEl, sclassEl, wlvEl, slvEl].forEach(el => {
+      el.addEventListener('input', syncLine);
+      el.addEventListener('change', syncLine);
+    });
+    syncLine();
 
-    // axes
-    ctx.strokeStyle = 'rgba(255,255,255,.16)';
-    angles.forEach(a=>{
+    // ===== 戦闘値計算 =====
+    const KEYS = ['hit','atk','mag','matk','eva','def','res','mdef','act','move','hp','mp','heal'];
+    function num(v) {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    }
+    function readRow(rowName) {
+      const obj = {};
+      KEYS.forEach(k => obj[k] = 0);
+      document.querySelectorAll(`.numIn[data-row="${rowName}"]`).forEach(inp => {
+        obj[inp.dataset.key] = num(inp.value);
+      });
+      return obj;
+    }
+    function writeOut(outName, data) {
+      document.querySelectorAll(`.numOut[data-out="${outName}"]`).forEach(span => {
+        const k = span.dataset.key;
+        span.textContent = data[k] ?? 0;
+      });
+    }
+    function add(a,b) {
+      const out = {};
+      KEYS.forEach(k => out[k] = (a[k]||0) + (b[k]||0));
+      return out;
+    }
+    // HP/MP bar update
+    const hpFill = document.getElementById('hpFill');
+    const mpFill = document.getElementById('mpFill');
+    const hpText = document.getElementById('hpText');
+    const mpText = document.getElementById('mpText');
+    const hpBarTxt = document.getElementById('hpBarTxt');
+    const mpBarTxt = document.getElementById('mpBarTxt');
+    function setBar(fillEl, textEl, barTxtEl, cur, max, label) {
+      const m = Math.max(1, num(max));
+      const c = Math.max(0, num(cur));
+      const pct = Math.max(0, Math.min(100, (c/m)*100));
+      fillEl.style.width = pct + '%';
+      textEl.textContent = `${c} / ${m}`;
+      barTxtEl.textContent = `${label} ${c}/${m}`;
+    }
+    function readComputed(which) {
+      const obj = {};
+      KEYS.forEach(k => obj[k] = 0);
+      document.querySelectorAll(`.numOut[data-out="${which}"]`).forEach(span => {
+        obj[span.dataset.key] = num(span.textContent);
+      });
+      return obj;
+    }
+    function recalcCombat() {
+      const base  = readRow('base');
+      const skill = readRow('skill');
+      const equip = readRow('equip');
+      const uneq = add(base, skill);
+      const eq   = add(uneq, equip);
+      writeOut('unequipped', uneq);
+      writeOut('equipped', eq);
+      // Bars use equipped totals; treat as max for now
+      const cur = readComputed('equipped');
+      setBar(hpFill, hpText, hpBarTxt, cur.hp, cur.hp, 'HP');
+      setBar(mpFill, mpText, mpBarTxt, cur.mp, cur.mp, 'MP');
+      document.getElementById('moveShow').value = cur.move;
+      drawRadar();
+    }
+    document.querySelectorAll('.numIn').forEach(inp => {
+      inp.addEventListener('input', recalcCombat);
+    });
+
+    // ===== レーダーチャート =====
+    const radar = document.getElementById('radar');
+    const ctx   = radar.getContext('2d');
+    const radarSource = document.getElementById('radarSource');
+    radarSource.addEventListener('change', drawRadar);
+    // Radar axes definitions (similar to sheet)
+    const RADAR_AXES = [
+      { key: 'hit',  label: '命中', max: 40 },
+      { key: 'eva',  label: '回避', max: 40 },
+      { key: 'atk',  label: '攻撃', max: 60 },
+      { key: 'def',  label: '防御', max: 40 },
+      { key: 'mag',  label: '魔導', max: 40 },
+      { key: 'res',  label: '抵抗', max: 40 },
+      { key: 'mdef', label: '魔防', max: 40 },
+      { key: 'act',  label: '行動', max: 40 },
+    ];
+    function drawRadar() {
+      const which = radarSource.value;
+      const stats = readComputed(which);
+      // CSS size
+      const rect = radar.getBoundingClientRect();
+      const cssW = Math.max(1, rect.width);
+      const cssH = Math.max(1, rect.height);
+      // DPR and buffer size
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const bufW = Math.round(cssW * dpr);
+      const bufH = Math.round(cssH * dpr);
+      if (radar.width !== bufW || radar.height !== bufH) {
+        radar.width = bufW;
+        radar.height = bufH;
+      }
+      // draw using CSS pixel coordinates
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, cssW, cssH);
+      const cx = cssW / 2;
+      const cy = cssH / 2;
+      const pad = 34;
+      const radius = Math.min(cssW, cssH) / 2 - pad;
+      const N = RADAR_AXES.length;
+      const angles = Array.from({ length: N }, (_, i) => (-Math.PI / 2) + i * (2 * Math.PI / N));
+      // rings
+      const rings = 5;
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(255,255,255,.14)';
+      for (let r = 1; r <= rings; r++) {
+        const rr = radius * (r / rings);
+        ctx.beginPath();
+        angles.forEach((a, i) => {
+          const x = cx + Math.cos(a) * rr;
+          const y = cy + Math.sin(a) * rr;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.closePath();
+        ctx.stroke();
+      }
+      // axes
+      ctx.strokeStyle = 'rgba(255,255,255,.16)';
+      angles.forEach(a => {
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(a) * radius, cy + Math.sin(a) * radius);
+        ctx.stroke();
+      });
+      // labels
+      ctx.fillStyle = 'rgba(255,255,255,.78)';
+      ctx.font = '12px ui-sans-serif, system-ui, sans-serif';
+      angles.forEach((a, i) => {
+        const lx = cx + Math.cos(a) * (radius + 14);
+        const ly = cy + Math.sin(a) * (radius + 14);
+        ctx.textAlign = Math.cos(a) > 0.25 ? 'left' : (Math.cos(a) < -0.25 ? 'right' : 'center');
+        ctx.textBaseline = Math.sin(a) > 0.25 ? 'top' : (Math.sin(a) < -0.25 ? 'bottom' : 'middle');
+        ctx.fillText(RADAR_AXES[i].label, lx, ly);
+      });
+      // polygon
+      const pts = RADAR_AXES.map((ax, i) => {
+        const v = stats[ax.key] || 0;
+        const t = ax.max ? (v / ax.max) : 0;
+        const rr = radius * Math.max(0, Math.min(1, t));
+        return [cx + Math.cos(angles[i]) * rr, cy + Math.sin(angles[i]) * rr];
+      });
       ctx.beginPath();
-      ctx.moveTo(cx,cy);
-      ctx.lineTo(cx + Math.cos(a)*radius, cy + Math.sin(a)*radius);
-      ctx.stroke();
-    });
-
-    // labels
-    ctx.fillStyle = 'rgba(255,255,255,.78)';
-    ctx.font = '12px ui-sans-serif, system-ui, sans-serif';
-    angles.forEach((a,i)=>{
-      const lx = cx + Math.cos(a)*(radius + 18);
-      const ly = cy + Math.sin(a)*(radius + 18);
-      ctx.textAlign = Math.cos(a) > 0.25 ? 'left' : (Math.cos(a) < -0.25 ? 'right' : 'center');
-      ctx.textBaseline = Math.sin(a) > 0.25 ? 'top' : (Math.sin(a) < -0.25 ? 'bottom' : 'middle');
-      ctx.fillText(STAT_DEFS[i].label, lx, ly);
-    });
-
-    // polygon
-    const pts = STAT_DEFS.map((def,i)=>{
-      const t = def.max ? (def.value/def.max) : 0;
-      const rr = radius * Math.max(0, Math.min(1, t));
-      return [cx + Math.cos(angles[i])*rr, cy + Math.sin(angles[i])*rr];
-    });
-
-    // fill
-    ctx.beginPath();
-    pts.forEach(([x,y],i)=> i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y));
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(124,240,255,.18)';
-    ctx.fill();
-
-    // stroke
-    ctx.strokeStyle = 'rgba(124,240,255,.78)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // points
-    ctx.fillStyle = 'rgba(184,255,106,.85)';
-    pts.forEach(([x,y])=>{
-      ctx.beginPath();
-      ctx.arc(x,y,3.2,0,Math.PI*2);
+      pts.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(124,240,255,.18)';
       ctx.fill();
-    });
+      ctx.strokeStyle = 'rgba(124,240,255,.78)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      // points
+      ctx.fillStyle = 'rgba(184,255,106,.85)';
+      pts.forEach(([x, y]) => {
+        ctx.beginPath();
+        ctx.arc(x, y, 3.0, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      // heading
+      ctx.fillStyle = 'rgba(255,255,255,.88)';
+      ctx.font = '800 13px ui-sans-serif, system-ui, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText(`戦闘値（${which === 'equipped' ? '装備込み' : '未装備'}）`, 10, 10);
+    }
+    window.addEventListener('resize', drawRadar);
 
-    // title
-    ctx.fillStyle = 'rgba(255,255,255,.88)';
-    ctx.font = '700 14px ui-sans-serif, system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.fillText('戦闘値', cx, 12);
-  }
+    // ===== 基本能力合計（将来拡張用） =====
+    const abiInputs = [...document.querySelectorAll('.abi')];
+    function calcAbiSum() {
+      let sum = 0;
+      abiInputs.forEach(el => sum += num(el.value));
+      // Could show somewhere if needed
+    }
+    abiInputs.forEach(el => el.addEventListener('input', calcAbiSum));
+    calcAbiSum();
 
-  window.addEventListener('resize', drawRadar);
-  drawRadar();
+    // ===== 行追加・削除（新セクション） =====
+    function addRow(tbody, placeholders) {
+      const tr = document.createElement('tr');
+      placeholders.forEach(ph => {
+        const td = document.createElement('td');
+        const input = document.createElement('input');
+        input.className = 'cellInput';
+        input.placeholder = ph;
+        td.appendChild(input);
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    }
+    function clearBody(tbody) {
+      tbody.innerHTML = '';
+    }
+    const skillBody = document.getElementById('skillBody');
+    const spellBody = document.getElementById('spellBody');
+    const equipBody = document.getElementById('equipBody');
+    const itemBody  = document.getElementById('itemBody');
+    // 初期行を設定
+    for (let i = 0; i < 3; i++) addRow(skillBody, ['名称','SL','タイミング','判定値','対象','射程','代償','効果']);
+    for (let i = 0; i < 3; i++) addRow(spellBody, ['名称','Lv','種別','タイミング','判定値','射程','代償','効果']);
+    for (let i = 0; i < 3; i++) addRow(equipBody, ['名称','種別','重／Lv','命中','攻撃','魔導','魔攻','回避','防御','抵抗','魔防','耐久','魔力','行動','移動','射程','備考']);
+    for (let i = 0; i < 3; i++) addRow(itemBody, ['名称','重量','効果','参照']);
+    // ボタンイベント
+    document.getElementById('addSkillRow').addEventListener('click', () => addRow(skillBody, ['名称','SL','タイミング','判定値','対象','射程','代償','効果']));
+    document.getElementById('clearSkillRows').addEventListener('click', () => clearBody(skillBody));
+    document.getElementById('addSpellRow').addEventListener('click', () => addRow(spellBody, ['名称','Lv','種別','タイミング','判定値','射程','代償','効果']));
+    document.getElementById('clearSpellRows').addEventListener('click', () => clearBody(spellBody));
+    document.getElementById('addEquipRow').addEventListener('click', () => addRow(equipBody, ['名称','種別','重／Lv','命中','攻撃','魔導','魔攻','回避','防御','抵抗','魔防','耐久','魔力','行動','移動','射程','備考']));
+    document.getElementById('clearEquipRows').addEventListener('click', () => clearBody(equipBody));
+    document.getElementById('addItemRow').addEventListener('click', () => addRow(itemBody, ['名称','重量','効果','参照']));
+    document.getElementById('clearItemRows').addEventListener('click', () => clearBody(itemBody));
 
-  // ---------------------------
-  // Abilities sum
-  // ---------------------------
-  const abiInputs = [...document.querySelectorAll('.abi')];
-  const abiSumEl = document.getElementById('abiSum');
-  function calcAbiSum(){
-    const sum = abiInputs.reduce((a,el)=> a + (Number(el.value)||0), 0);
-    abiSumEl.textContent = sum;
-  }
-  abiInputs.forEach(el => el.addEventListener('input', calcAbiSum));
-  calcAbiSum();
-
-  // ---------------------------
-  // Tables (manual inputs)
-  // ---------------------------
-  function addRow(tbody, cols){
-    const tr = document.createElement('tr');
-    cols.forEach((ph)=> {
-      const td = document.createElement('td');
-      const input = document.createElement('input');
-      input.className = 'cellInput';
-      input.placeholder = ph;
-      td.appendChild(input);
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
-  }
-  function clearBody(tbody){ tbody.innerHTML=''; }
-
-  const itemsBody = document.getElementById('itemsBody');
-  const skillsBody = document.getElementById('skillsBody');
-  const spellsBody = document.getElementById('spellsBody');
-
-  // initial rows
-  for(let i=0;i<4;i++) addRow(itemsBody, ['名称','重量','効果','参照']);
-  for(let i=0;i<4;i++) addRow(skillsBody, ['名称','SL','タイミング','判定','射程','代償','効果']);
-  for(let i=0;i<3;i++) addRow(spellsBody, ['名称','Lv','種別','タイミング','射程','代償','効果']);
-
-  document.getElementById('addItem').addEventListener('click', ()=> addRow(itemsBody, ['名称','重量','効果','参照']));
-  document.getElementById('clearItems').addEventListener('click', ()=> clearBody(itemsBody));
-
-  document.getElementById('addSkill').addEventListener('click', ()=> addRow(skillsBody, ['名称','SL','タイミング','判定','射程','代償','効果']));
-  document.getElementById('clearSkills').addEventListener('click', ()=> clearBody(skillsBody));
-
-  document.getElementById('addSpell').addEventListener('click', ()=> addRow(spellsBody, ['名称','Lv','種別','タイミング','射程','代償','効果']));
-  document.getElementById('clearSpells').addEventListener('click', ()=> clearBody(spellsBody));
-</script>
+    // 初回計算・描画
+    recalcCombat();
+  </script>
 </body>
 </html>
