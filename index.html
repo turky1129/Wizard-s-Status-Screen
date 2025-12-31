@@ -1,1019 +1,394 @@
-<!doctype html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ナイトウィザード キャラクターメイク（Vue3）</title>
-  <style>
-    :root{
-      --bg:#0e1116;--line:rgba(255,255,255,.10);--line2:rgba(255,255,255,.18);
-      --text:rgba(255,255,255,.92);--muted:rgba(255,255,255,.66);
-      --accent:#7cf0ff;--accent2:#b8ff6a;--danger:#ff6a7a;
-      --shadow:0 16px 40px rgba(0,0,0,.45);--radius:16px;--radius2:12px;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
-      background:
-        radial-gradient(1400px 900px at 20% 10%, rgba(124,240,255,.10), transparent 55%),
-        radial-gradient(1200px 900px at 80% 0%, rgba(184,255,106,.08), transparent 50%),
-        radial-gradient(1100px 900px at 70% 100%, rgba(255,106,122,.06), transparent 55%),
-        var(--bg);
-      color:var(--text);
-    }
-    .wrap{max-width:1560px;margin:0 auto;padding:18px 20px 24px}
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-    .title{display:flex;align-items:baseline;gap:10px;font-weight:800;letter-spacing:.02em}
-    .title small{color:var(--muted);font-weight:650}
-    .chip{
-      display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);
-      border-radius:999px;background:rgba(255,255,255,.04);color:var(--muted);font-size:12px;white-space:nowrap
-    }
-    .panel{
-      background:linear-gradient(180deg, rgba(40,50,70,.55), rgba(20,25,40,.55)),
-        radial-gradient(800px 400px at 30% -10%, rgba(124,240,255,.05), transparent 70%),
-        radial-gradient(800px 400px at 70% 110%, rgba(184,255,106,.04), transparent 70%);
-      border:1px solid var(--line);border-radius:var(--radius);
-      box-shadow:var(--shadow),0 0 12px rgba(124,240,255,.05),0 0 20px rgba(184,255,106,.04);
-      overflow:hidden;
-    }
-    .panel .bd{padding:14px}
-    .grid{display:grid;grid-template-columns:480px 1fr;gap:14px;align-items:start}
-    .portrait{display:flex;flex-direction:column;gap:12px}
-    .portraitBox{
-      width:100%;aspect-ratio:6/5;border-radius:var(--radius2);border:1px solid var(--line2);
-      background:
-        radial-gradient(700px 300px at 30% 0%, rgba(124,240,255,.10), transparent 55%),
-        radial-gradient(700px 300px at 70% 100%, rgba(184,255,106,.10), transparent 55%),
-        rgba(255,255,255,.02);
-      position:relative;overflow:hidden;cursor:pointer;
-    }
-    .portraitBox img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-    .portraitBox .hint{
-      position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-      color:var(--muted);gap:8px;text-align:center;padding:16px
-    }
-    .btnRow{display:flex;gap:10px;flex-wrap:wrap}
-    button{
-      border:1px solid var(--line2);background:rgba(255,255,255,.04);color:var(--text);
-      padding:9px 12px;border-radius:12px;font-weight:700;cursor:pointer;
-      transition:transform .05s ease,background .15s ease,border .15s ease;white-space:nowrap
-    }
-    button:hover{background:rgba(255,255,255,.07)}
-    button:active{transform:translateY(1px)}
-    button.primary{border-color:rgba(124,240,255,.45);box-shadow:0 0 0 2px rgba(124,240,255,.10) inset}
-    button.danger{border-color:rgba(255,106,122,.45);color:#ffd5db}
-    input[type="file"]{display:none}
+<!doctype html><html lang="ja"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>NW キャラクターメイキング 完全版</title><style>
+:root{--bg:#0e1116;--panel-bg:#252b38;--line:rgba(255,255,255,.10);--line2:rgba(255,255,255,.18);--text:rgba(255,255,255,.92);--muted:rgba(255,255,255,.66);--accent:#7cf0ff;--accent2:#b8ff6a;--danger:#ff6a7a;--shadow:0 16px 40px rgba(0,0,0,.45);--radius:16px;--radius2:12px}
+*{box-sizing:border-box}
+body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;background:radial-gradient(1400px 900px at 20% 10%, rgba(124,240,255,.10), transparent 55%),radial-gradient(1200px 900px at 80% 0%, rgba(184,255,106,.08), transparent 50%),var(--bg);color:var(--text)}
+.wrap{max-width:1560px;margin:0 auto;padding:18px 20px 24px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;flex-wrap:wrap}
+.title{display:flex;align-items:baseline;gap:10px;font-weight:800;letter-spacing:.02em}
+.header-controls{display:flex;align-items:center;gap:12px;flex-grow:1;justify-content:flex-end}
 
-    .statusLeft{margin-top:12px}
-    .statusGridLeft{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:end}
-    .statusGridLeft .barWrap{grid-column:span 2}
-    .sField{display:flex;flex-direction:column;gap:6px;min-width:0}
-    .sField label{font-size:11px;color:var(--muted)}
-    .sField input,.sField select{
-      width:100%;border:1px solid var(--line2);background:rgba(0,0,0,.18);color:var(--text);
-      padding:9px 10px;border-radius:12px;outline:none;min-width:0
-    }
-    .sField input:focus,.sField select:focus{border-color:rgba(124,240,255,.55);box-shadow:0 0 0 3px rgba(124,240,255,.10)}
-    .barWrap{display:flex;flex-direction:column;gap:6px;min-width:0}
-    .barHead{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--muted)}
-    .bar{
-      height:14px;border-radius:999px;border:1px solid var(--line2);background:rgba(0,0,0,.22);
-      overflow:hidden;position:relative
-    }
-    .bar>i{display:block;height:100%;width:50%;background:linear-gradient(90deg, rgba(124,240,255,.95), rgba(184,255,106,.85))}
-    .bar.hp>i{background:linear-gradient(90deg, rgba(255,106,122,.95), rgba(255,190,90,.85))}
-    .barTxt{
-      position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;
-      color:rgba(255,255,255,.86);font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.45);
-      pointer-events:none
-    }
-    .miniRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
-    .pill{
-      border:1px solid var(--line);background:rgba(255,255,255,.03);padding:7px 10px;border-radius:999px;
-      font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center;white-space:nowrap
-    }
-    .pill b{color:var(--text)}
+/* グリッドとセクションの幅制限 */
+.grid{display:grid;grid-template-columns:480px 1fr;gap:14px;align-items:start}
+section{min-width: 0}
 
-    .tableWrap{
-      border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.10);
-      overflow:auto;max-height:380px
-    }
-    table{width:100%;border-collapse:collapse;font-size:13px;min-width:720px}
-    th,td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:7px 8px;vertical-align:middle;white-space:nowrap}
-    th{
-      color:var(--muted);font-weight:800;background:rgba(255,255,255,.03);
-      position:sticky;top:0;z-index:1
-    }
-    td:last-child,th:last-child{border-right:none}
-    tr:last-child td{border-bottom:none}
-    .rowHead{
-      position:sticky;left:0;z-index:2;background:rgba(18,22,29,.95);
-      color:rgba(255,255,255,.86);font-weight:850;border-right:1px solid var(--line2)
-    }
-    .numIn{
-      width:56px;border:1px solid var(--line2);background:rgba(0,0,0,.18);color:var(--text);
-      padding:6px 7px;border-radius:10px;outline:none;font-variant-numeric:tabular-nums;text-align:right
-    }
-    .numOut{
-      min-width:42px;display:inline-block;text-align:right;font-variant-numeric:tabular-nums;
-      padding:5px 7px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.18)
-    }
-    #combatTable tbody tr.result-row td,#combatTable tbody tr.result-row .numOut{background:rgba(124,240,255,.07);font-weight:750}
-    #combatTable tbody tr.result-row.equipped td,#combatTable tbody tr.result-row.equipped .numOut{background:rgba(124,240,255,.12);font-weight:800}
+.panel{background:linear-gradient(180deg, rgba(40,50,70,.55), rgba(20,25,40,.55));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:14px;width:100%}
+.panel .bd{padding:14px;width:100%;overflow:hidden}
 
-    .abilities{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:10px}
-    .ability{
-      border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:14px;
-      padding:10px;display:flex;flex-direction:column;gap:6px;min-width:0
-    }
-    .ability label{font-size:12px;color:var(--muted)}
-    .ability input{
-      width:100%;padding:9px 10px;border-radius:12px;border:1px solid var(--line2);
-      background:rgba(0,0,0,.18);color:var(--text);font-weight:800;font-variant-numeric:tabular-nums
-    }
+.portraitBox{width:100%;aspect-ratio:6/5;border-radius:var(--radius2);border:1px solid var(--line2);background:rgba(255,255,255,.02);position:relative;overflow:hidden;cursor:pointer}
+.portraitBox img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.btnRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{border:1px solid var(--line2);background:rgba(255,255,255,0.04);color:var(--text);padding:8px 12px;border-radius:12px;font-weight:700;cursor:pointer;transition:all .15s ease;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center}
+button:hover{background:rgba(255,255,255,0.1)}
+button.primary{border-color:var(--accent);background:rgba(124,240,255,0.1)}
+button.danger{border-color:var(--danger);background:rgba(255,106,122,0.1)}
+button.icon-btn{padding:4px;width:28px;height:28px;border-radius:8px;font-size:16px}
+button.toggle-on{background:var(--accent2);color:#000;border-color:var(--accent2)}
+.sField{display:flex;flex-direction:column;gap:6px;min-width:0}
+.sField label{font-size:11px;color:var(--muted)}
+.sField input,.sField select,.sField textarea{width:100%;border:1px solid var(--line2);background:rgba(0,0,0,0.3);color:var(--text);padding:9px 10px;border-radius:12px;outline:none}
+.lvl-info{display:flex;flex-direction:column;gap:4px;background:rgba(124,240,255,0.1);padding:6px 12px;border-radius:12px;border:1px solid rgba(124,240,255,0.3);min-width:80px;align-items:center}
+.lvl-info label{font-size:10px;color:var(--accent);font-weight:800}
+.lvl-info b{font-size:22px}
 
-    .sectionTitle{display:block;font-weight:700;margin-bottom:6px;color:var(--muted)}
-    .sectionTitle::before{content:'▼';margin-right:4px;color:var(--accent)}
-    .sectionBar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
-    .sectionBar .rightInfo{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-    .kv{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.03);
-      padding:6px 10px;
-      border-radius:999px;
-      font-size:12px;
-      color:var(--muted);
-      display:flex;
-      gap:6px;
-      align-items:center;
-      font-variant-numeric:tabular-nums;
-      white-space:nowrap;
-    }
-    .kv b{color:var(--text)}
+.sectionTitle{display:flex;align-items:center;width:100%;font-weight:700;padding:12px 14px;color:var(--muted);background:rgba(255,255,255,0.03);cursor:pointer;user-select:none;border-bottom:1px solid var(--line)}
+.sectionTitle .label-text{display:flex;align-items:center}
+.sectionTitle .label-text::before{content:attr(data-icon);margin-right:8px;color:var(--accent);font-size:10px;width:12px}
 
-    /* ===== 左側に入れる圧縮パーソナリティ ===== */
-    .pWrap{
-      display:grid;
-      grid-template-columns:repeat(12,minmax(0,1fr));
-      gap:8px;
-      align-items:end;
-    }
-    .pField{display:flex;flex-direction:column;gap:4px;min-width:0}
-    .pField label{font-size:10px;color:var(--muted)}
-    .pField input{
-      width:100%;
-      border:1px solid var(--line2);
-      background:rgba(0,0,0,.18);
-      color:var(--text);
-      padding:7px 9px;
-      border-radius:10px;
-      outline:none;
-      min-width:0;
-      font-size:12px;
-    }
-    .span2{grid-column:span 2}
-    .span4{grid-column:span 4}
-    .span12{grid-column:span 12}
+.summary-chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0;margin-left:12px;scrollbar-width:none;flex-grow:1}
+.chip{font-size:14px;padding:4px 10px;background:rgba(255,255,255,0.1);border-radius:6px;white-space:nowrap;color:var(--text);border:1px solid var(--line)}
+.chip b{color:var(--accent2);margin-left:4px;font-size:16px}
 
-    /* ===== ライフパス ===== */
-    .lpTableWrap{
-      border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.10);
-      overflow:auto;
-    }
-    .lpTable{width:100%;border-collapse:collapse;font-size:12px;min-width:420px}
-    .lpTable th,.lpTable td{
-      border-bottom:1px solid var(--line);
-      border-right:1px solid var(--line);
-      padding:7px 8px;
-      vertical-align:middle;
-      white-space:nowrap
-    }
-    .lpTable th{
-      color:var(--muted);font-weight:800;background:rgba(255,255,255,.03);
-      position:sticky;top:0;z-index:1
-    }
-    .lpTable td:last-child,.lpTable th:last-child{border-right:none}
-    .lpTable tr:last-child td{border-bottom:none}
-    .lpRowHead{
-      width:64px;
-      position:sticky;left:0;z-index:2;
-      background:rgba(18,22,29,.95);
-      color:rgba(255,255,255,.86);
-      font-weight:850;border-right:1px solid var(--line2);
-      text-align:center
-    }
-    .lpIn{
-      width:100%;
-      border:1px solid var(--line2);
-      background:rgba(0,0,0,.18);
-      color:var(--text);
-      padding:7px 9px;
-      border-radius:10px;
-      outline:none;
-      font-size:12px;
-    }
+.tableWrap{width:100%;display:block;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,0.15);overflow-x:auto}
 
-    .lower{margin-top:14px;display:grid;grid-template-columns:1fr;gap:14px}
-    .tableWrap2{
-      border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.10);
-      overflow:auto;max-height:340px
-    }
-    .tableWrap2 table{width:100%;border-collapse:collapse;font-size:13px;min-width:820px}
-    .tableWrap2 th,.tableWrap2 td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:9px 8px;vertical-align:top;font-size:13px}
-    .tableWrap2 th{color:var(--muted);font-weight:800;background:rgba(255,255,255,.03);white-space:nowrap}
-    .tableWrap2 td:last-child,.tableWrap2 th:last-child{border-right:none}
-    .tableWrap2 tr:last-child td{border-bottom:none}
-    .cellInput{
-      width:100%;border:1px solid var(--line2);background:rgba(0,0,0,.18);color:var(--text);
-      padding:8px 9px;border-radius:10px;outline:none;font-size:13px
-    }
-    .cellSel{
-      width:100%;
-      border:1px solid var(--line2);
-      background:rgba(0,0,0,.18);
-      color:var(--text);
-      padding:8px 9px;
-      border-radius:10px;
-      outline:none;
-      font-size:13px
-    }
-    .chk{
-      width:18px;height:18px;accent-color:#7cf0ff;
-    }
-    .tdCenter{text-align:center}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+th,td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:7px 8px;vertical-align:middle;white-space:nowrap}
+th{color:var(--muted);background:rgba(255,255,255,0.03);font-weight:800}
+.numIn{width:56px;border:1px solid var(--line2);background:rgba(0,0,0,0.18);color:var(--text);padding:6px 7px;border-radius:10px;outline:none;text-align:right}
+.numOut{min-width:42px;display:inline-block;text-align:right;padding:5px 7px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,0.2)}
+.cellInput{width:100%;border:1px solid var(--line2);background:rgba(0,0,0,0.18);color:var(--text);padding:6px 7px;border-radius:8px;outline:none}
+.cellSelect{width:100%;border:1px solid var(--line2);background:rgba(0,0,0,0.18);color:var(--text);padding:6px 2px;border-radius:8px;outline:none}
+.sort-controls{display:flex;gap:2px}
+.sort-btn{padding:2px 4px;font-size:10px;min-width:24px;border-radius:4px;background:rgba(255,255,255,0.05)}
 
-    @media (max-width:1200px){.grid{grid-template-columns:1fr}}
-    @media (max-width:980px){.abilities{grid-template-columns:repeat(4,minmax(0,1fr))}}
-    @media (max-width:560px){.abilities{grid-template-columns:repeat(2,minmax(0,1fr))}}
-  </style>
-</head>
-<body>
-  <div id="app" class="wrap">
-    <div class="topbar">
-      <div class="title">
-        <div>NW キャラクターメイキング</div>
-        <small>PC版（Vue3）</small>
-      </div>
-      <div class="chip">上段：メインUI／下段：入力</div>
-    </div>
+/* 固定列 */
+.sticky-col {position:sticky;z-index:10;background:var(--panel-bg)}
+th.sticky-col {background:#2f3542;z-index:11}
+.col-fix-0 {left:0;width:40px}
+.col-fix-1 {left:40px;width:180px}
+.col-fix-2 {left:220px;width:80px}
+.col-fix-3 {left:300px;width:100px;box-shadow:4px 0 10px rgba(0,0,0,0.5);border-right:1px solid var(--line)}
 
-    <div class="grid">
-      <!-- 左：画像 + ステータス + パーソナリティ + ライフパス -->
-      <section class="panel">
-        <div class="bd portrait">
-          <div class="portraitBox" @click="pickImage">
-            <img v-if="portraitUrl" :src="portraitUrl" alt="portrait" />
-            <div v-else class="hint">
-              <div style="font-weight:850;color:rgba(255,255,255,.85)">画像を読み込む</div>
-              <div style="font-size:12px">PNG/JPG推奨、クリックでも選択可。</div>
-            </div>
-          </div>
+.cap-stats {display:flex;gap:10px;margin-left:14px;font-size:13px;color:var(--text)}
+.cap-item {background:rgba(0,0,0,0.4);padding:4px 12px;border-radius:8px;border:1px solid var(--line);display:flex;align-items:center;gap:6px}
+.cap-item span {color:var(--muted);font-size:11px;font-weight:800}
+.cap-item b {color:var(--accent);font-size:16px;letter-spacing:0.02em}
+.cap-item.over b {color:var(--danger)}
+.cap-max {font-size:12px;color:var(--muted);margin-left:-2px}
 
-          <input ref="fileEl" type="file" accept="image/*" @change="onFileChange" />
-          <div class="btnRow">
-            <button class="primary" type="button" @click="pickImage">画像を選ぶ</button>
-            <button class="danger" type="button" @click="clearImage">削除</button>
-          </div>
-
-          <div class="statusLeft">
-            <div class="statusGridLeft">
-              <div class="sField">
-                <label>氏名</label>
-                <input v-model="meta.name" placeholder="例：霧崎タクミ" />
-              </div>
-
-              <div class="sField">
-                <label>属性</label>
-                <select v-model="meta.element">
-                  <option value="">選択…</option>
-                  <option v-for="k in elementKeys" :key="k" :value="k">{{k}}</option>
-                  <option value="その他">その他</option>
-                </select>
-              </div>
-
-              <div class="sField">
-                <label>ウィザードクラス</label>
-                <select v-model="meta.wclass">
-                  <option value="">選択…</option>
-                  <option v-for="k in classKeys" :key="k" :value="k">{{k}}</option>
-                  <option value="その他">その他</option>
-                </select>
-              </div>
-
-              <div class="sField">
-                <label>Lv（WC）</label>
-                <select v-model.number="meta.wlv">
-                  <option v-for="i in 10" :key="i" :value="i">Lv{{i}}</option>
-                </select>
-              </div>
-
-              <div class="sField">
-                <label>スタイルクラス</label>
-                <select v-model="meta.sclass">
-                  <option value="">選択…</option>
-                  <option value="アタッカー">アタッカー</option>
-                  <option value="ディフェンダー">ディフェンダー</option>
-                  <option value="キャスター">キャスター</option>
-                  <option value="サポーター">サポーター</option>
-                  <option value="ヒーラー">ヒーラー</option>
-                  <option value="その他">その他</option>
-                </select>
-              </div>
-
-              <div class="sField">
-                <label>Lv（SC）</label>
-                <select v-model.number="meta.slv">
-                  <option v-for="i in 10" :key="i" :value="i">Lv{{i}}</option>
-                </select>
-              </div>
-
-              <div class="barWrap">
-                <div class="barHead"><span>HP</span><span>{{bars.hpText}}</span></div>
-                <div class="bar hp">
-                  <i :style="{width: bars.hpPct + '%'}"></i>
-                  <div class="barTxt">HP {{bars.hpText}}</div>
-                </div>
-              </div>
-
-              <div class="barWrap">
-                <div class="barHead"><span>MP</span><span>{{bars.mpText}}</span></div>
-                <div class="bar">
-                  <i :style="{width: bars.mpPct + '%'}"></i>
-                  <div class="barTxt">MP {{bars.mpText}}</div>
-                </div>
-              </div>
-
-              <div class="sField">
-                <label>移動</label>
-                <input :value="equipped.move" readonly />
-              </div>
-              <div class="sField">
-                <label>C値</label>
-                <input value="6" readonly />
-              </div>
-            </div>
-
-            <div class="miniRow">
-              <div class="pill">表示：<b>{{dispLine}}</b></div>
-              <div class="pill">総合Lv：<b>{{totalLevel}}</b></div>
-            </div>
-          </div>
-
-          <!-- パーソナリティ（圧縮版） -->
-          <div class="panel" style="box-shadow:none;margin-top:10px">
-            <div class="bd" style="background:rgba(0,0,0,.06)">
-              <div class="sectionTitle">パーソナリティ</div>
-              <div class="pWrap">
-                <div class="pField span4"><label>種族</label><input v-model="pers.race" placeholder="種族" /></div>
-                <div class="pField span4"><label>二つ名</label><input v-model="pers.alias" placeholder="二つ名" /></div>
-                <div class="pField span4"><label>ワークス</label><input v-model="pers.works" placeholder="ワークス" /></div>
-
-                <div class="pField span4"><label>所属</label><input v-model="pers.affiliation" placeholder="所属" /></div>
-                <div class="pField span2"><label>性別</label><input v-model="pers.gender" placeholder="性別" /></div>
-                <div class="pField span2"><label>年齢</label><input v-model="pers.age" placeholder="年齢" /></div>
-                <div class="pField span2"><label>身長</label><input v-model="pers.height" placeholder="身長" /></div>
-                <div class="pField span2"><label>体重</label><input v-model="pers.weight" placeholder="体重" /></div>
-
-                <div class="pField span4"><label>髪の色</label><input v-model="pers.hairColor" placeholder="髪の色" /></div>
-                <div class="pField span4"><label>瞳の色</label><input v-model="pers.eyeColor" placeholder="瞳の色" /></div>
-                <div class="pField span4"><label>肌の色</label><input v-model="pers.skinColor" placeholder="肌の色" /></div>
-
-                <div class="pField span12"><label>任意の項目</label><input v-model="pers.freeField" placeholder="任意の項目" /></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ライフパス -->
-          <div class="panel" style="box-shadow:none;margin-top:10px">
-            <div class="bd" style="background:rgba(0,0,0,.06)">
-              <div class="sectionTitle">ライフパス</div>
-              <div class="lpTableWrap">
-                <table class="lpTable">
-                  <thead>
-                    <tr>
-                      <th class="lpRowHead">区分</th>
-                      <th style="width:26%">名称</th>
-                      <th style="width:26%">特徴</th>
-                      <th>解説</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td class="lpRowHead">出自</td>
-                      <td><input class="lpIn" v-model="lifepath.origin.name" placeholder="名称"></td>
-                      <td><input class="lpIn" v-model="lifepath.origin.trait" placeholder="特徴"></td>
-                      <td><input class="lpIn" v-model="lifepath.origin.desc" placeholder="解説"></td>
-                    </tr>
-                    <tr>
-                      <td class="lpRowHead">生活</td>
-                      <td><input class="lpIn" v-model="lifepath.living.name" placeholder="名称"></td>
-                      <td><input class="lpIn" v-model="lifepath.living.trait" placeholder="特徴"></td>
-                      <td><input class="lpIn" v-model="lifepath.living.desc" placeholder="解説"></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      <!-- 右：戦闘値表 + 基本能力 + 下段テーブル -->
-      <section class="panel">
-        <div class="bd">
-
-          <div class="panel" style="box-shadow:none">
-            <div class="bd" style="background:rgba(0,0,0,.06)">
-              <div class="tableWrap">
-                <table id="combatTable">
-                  <thead>
-                    <tr>
-                      <th class="rowHead">戦闘値</th>
-                      <th>命中</th><th>攻撃</th><th>魔導</th><th>魔攻</th>
-                      <th>回避</th><th>防御</th><th>抵抗</th><th>魔防</th>
-                      <th>行動</th><th>移動</th><th>HP</th><th>MP</th><th>治療</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td class="rowHead">ベース</td>
-                      <td><input class="numIn" type="number" v-model.number="combat.base.hit" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.base.atk" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.base.mag" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.base.matk" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.base.eva" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.base.def" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.base.res" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.base.mdef" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.base.act" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.base.move" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.base.hp" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.base.mp" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.base.heal" /></td>
-                    </tr>
-
-                    <tr>
-                      <td class="rowHead">特殊能力修正</td>
-                      <td><input class="numIn" type="number" v-model.number="combat.skill.hit" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.skill.atk" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.skill.mag" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.skill.matk" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.skill.eva" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.skill.def" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.skill.res" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.skill.mdef" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.skill.act" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.skill.move" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.skill.hp" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.skill.mp" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.skill.heal" /></td>
-                    </tr>
-
-                    <tr>
-                      <td class="rowHead">装備修正</td>
-                      <td><input class="numIn" type="number" v-model.number="combat.equip.hit" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.equip.atk" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.equip.mag" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.equip.matk" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.equip.eva" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.equip.def" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.equip.res" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.equip.mdef" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.equip.act" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.equip.move" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.equip.hp" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.equip.mp" /></td>
-                      <td><input class="numIn" type="number" v-model.number="combat.equip.heal" /></td>
-                    </tr>
-
-                    <tr class="result-row">
-                      <td class="rowHead">未装備（自動）</td>
-                      <td><span class="numOut">{{unequipped.hit}}</span></td>
-                      <td><span class="numOut">{{unequipped.atk}}</span></td>
-                      <td><span class="numOut">{{unequipped.mag}}</span></td>
-                      <td><span class="numOut">{{unequipped.matk}}</span></td>
-                      <td><span class="numOut">{{unequipped.eva}}</span></td>
-                      <td><span class="numOut">{{unequipped.def}}</span></td>
-                      <td><span class="numOut">{{unequipped.res}}</span></td>
-                      <td><span class="numOut">{{unequipped.mdef}}</span></td>
-                      <td><span class="numOut">{{unequipped.act}}</span></td>
-                      <td><span class="numOut">{{unequipped.move}}</span></td>
-                      <td><span class="numOut">{{unequipped.hp}}</span></td>
-                      <td><span class="numOut">{{unequipped.mp}}</span></td>
-                      <td><span class="numOut">{{unequipped.heal}}</span></td>
-                    </tr>
-
-                    <tr class="result-row equipped">
-                      <td class="rowHead">装備込み（自動）</td>
-                      <td><span class="numOut">{{equipped.hit}}</span></td>
-                      <td><span class="numOut">{{equipped.atk}}</span></td>
-                      <td><span class="numOut">{{equipped.mag}}</span></td>
-                      <td><span class="numOut">{{equipped.matk}}</span></td>
-                      <td><span class="numOut">{{equipped.eva}}</span></td>
-                      <td><span class="numOut">{{equipped.def}}</span></td>
-                      <td><span class="numOut">{{equipped.res}}</span></td>
-                      <td><span class="numOut">{{equipped.mdef}}</span></td>
-                      <td><span class="numOut">{{equipped.act}}</span></td>
-                      <td><span class="numOut">{{equipped.move}}</span></td>
-                      <td><span class="numOut">{{equipped.hp}}</span></td>
-                      <td><span class="numOut">{{equipped.mp}}</span></td>
-                      <td><span class="numOut">{{equipped.heal}}</span></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <div class="panel" style="box-shadow:none;margin-top:14px">
-            <div class="bd" style="background:rgba(0,0,0,.06)">
-              <div class="abilities">
-                <div class="ability"><label>筋力</label><input type="number" v-model.number="abi.str" /></div>
-                <div class="ability"><label>器用</label><input type="number" v-model.number="abi.dex" /></div>
-                <div class="ability"><label>敏捷</label><input type="number" v-model.number="abi.agi" /></div>
-                <div class="ability"><label>精神</label><input type="number" v-model.number="abi.mnd" /></div>
-                <div class="ability"><label>知力</label><input type="number" v-model.number="abi.int" /></div>
-                <div class="ability"><label>信仰</label><input type="number" v-model.number="abi.fai" /></div>
-                <div class="ability"><label>知覚</label><input type="number" v-model.number="abi.per" /></div>
-                <div class="ability"><label>幸運</label><input type="number" v-model.number="abi.luk" /></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="lower">
-            <section class="panel">
-              <div class="bd">
-                <div class="sectionTitle">特殊能力</div>
-                <div class="tableWrap2">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style="width:20%">名称</th>
-                        <th style="width:6%">SL</th>
-                        <th style="width:10%">タイミング</th>
-                        <th style="width:12%">判定値</th>
-                        <th style="width:10%">対象</th>
-                        <th style="width:10%">射程</th>
-                        <th style="width:10%">代償</th>
-                        <th style="width:22%">効果</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(r,i) in skills" :key="r._k">
-                        <td><input class="cellInput" v-model="r.name" placeholder="名称"></td>
-                        <td><input class="cellInput" v-model="r.sl" placeholder="SL"></td>
-                        <td><input class="cellInput" v-model="r.timing" placeholder="タイミング"></td>
-                        <td><input class="cellInput" v-model="r.judge" placeholder="判定値"></td>
-                        <td><input class="cellInput" v-model="r.target" placeholder="対象"></td>
-                        <td><input class="cellInput" v-model="r.range" placeholder="射程"></td>
-                        <td><input class="cellInput" v-model="r.cost" placeholder="代償"></td>
-                        <td><input class="cellInput" v-model="r.effect" placeholder="効果"></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div class="btnRow" style="margin-top:8px">
-                  <button type="button" @click="addSkillRow">行追加</button>
-                  <button type="button" class="danger" @click="clearSkillRows">全消し</button>
-                </div>
-              </div>
-            </section>
-
-            <section class="panel">
-              <div class="bd">
-                <div class="sectionTitle">魔法・記憶</div>
-                <div class="tableWrap2">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style="width:20%">名称</th>
-                        <th style="width:6%">Lv</th>
-                        <th style="width:10%">種別</th>
-                        <th style="width:12%">タイミング</th>
-                        <th style="width:10%">判定値</th>
-                        <th style="width:10%">射程</th>
-                        <th style="width:10%">代償</th>
-                        <th style="width:22%">効果</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(r,i) in spells" :key="r._k">
-                        <td><input class="cellInput" v-model="r.name" placeholder="名称"></td>
-                        <td><input class="cellInput" v-model="r.lv" placeholder="Lv"></td>
-                        <td><input class="cellInput" v-model="r.kind" placeholder="種別"></td>
-                        <td><input class="cellInput" v-model="r.timing" placeholder="タイミング"></td>
-                        <td><input class="cellInput" v-model="r.judge" placeholder="判定値"></td>
-                        <td><input class="cellInput" v-model="r.range" placeholder="射程"></td>
-                        <td><input class="cellInput" v-model="r.cost" placeholder="代償"></td>
-                        <td><input class="cellInput" v-model="r.effect" placeholder="効果"></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div class="btnRow" style="margin-top:8px">
-                  <button type="button" @click="addSpellRow">行追加</button>
-                  <button type="button" class="danger" @click="clearSpellRows">全消し</button>
-                </div>
-              </div>
-            </section>
-
-            <!-- ===== 装備（改修版） ===== -->
-            <section class="panel">
-              <div class="bd">
-
-                <div class="sectionBar">
-                  <div class="sectionTitle" style="margin:0">装備</div>
-                  <div class="rightInfo">
-                    <div class="kv">重量 <b>{{cap.weightUsed}}</b>/<b>{{cap.weightMax}}</b></div>
-                    <div class="kv">記憶 <b>{{cap.memoryUsed}}</b>/<b>{{cap.memoryMax}}</b></div>
-                    <div class="kv">月衣 <b>{{cap.moonUsed}}</b>/<b>{{cap.moonMax}}</b></div>
-                  </div>
-                </div>
-
-                <div class="tableWrap2">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style="width:44px">装</th>
-                        <th style="width:20%">名称</th>
-                        <th style="width:10%">種別</th>
-                        <th style="width:8%">重量</th>
-                        <th style="width:14%">装備部位</th>
-                        <th style="width:6%">命中</th>
-                        <th style="width:6%">攻撃</th>
-                        <th style="width:6%">魔導</th>
-                        <th style="width:6%">魔攻</th>
-                        <th style="width:6%">回避</th>
-                        <th style="width:6%">防御</th>
-                        <th style="width:6%">抵抗</th>
-                        <th style="width:6%">魔防</th>
-                        <th style="width:6%">耐久</th>
-                        <th style="width:6%">魔力</th>
-                        <th style="width:6%">行動</th>
-                        <th style="width:6%">移動</th>
-                        <th style="width:6%">射程</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(r,i) in equips" :key="r._k">
-                        <td class="tdCenter">
-                          <input class="chk" type="checkbox" v-model="r.equipped">
-                        </td>
-                        <td><input class="cellInput" v-model="r.name" placeholder="名称"></td>
-                        <td>
-                          <select class="cellSel" v-model="r.type">
-                            <option value="武器">武器</option>
-                            <option value="箒">箒</option>
-                            <option value="防具">防具</option>
-                            <option value="その他">その他</option>
-                            <option value="魔装">魔装</option>
-                          </select>
-                        </td>
-                        <td><input class="cellInput" type="number" v-model.number="r.weight" placeholder="0"></td>
-                        <td><input class="cellInput" v-model="r.slot" placeholder="部位"></td>
-
-                        <td><input class="cellInput" type="number" v-model.number="r.hit" placeholder="0"></td>
-                        <td><input class="cellInput" type="number" v-model.number="r.atk" placeholder="0"></td>
-                        <td><input class="cellInput" type="number" v-model.number="r.mag" placeholder="0"></td>
-                        <td><input class="cellInput" type="number" v-model.number="r.matk" placeholder="0"></td>
-                        <td><input class="cellInput" type="number" v-model.number="r.eva" placeholder="0"></td>
-                        <td><input class="cellInput" type="number" v-model.number="r.def" placeholder="0"></td>
-                        <td><input class="cellInput" type="number" v-model.number="r.res" placeholder="0"></td>
-                        <td><input class="cellInput" type="number" v-model.number="r.mdef" placeholder="0"></td>
-                        <td><input class="cellInput" type="number" v-model.number="r.hp" placeholder="0"></td>
-                        <td><input class="cellInput" type="number" v-model.number="r.mp" placeholder="0"></td>
-                        <td><input class="cellInput" type="number" v-model.number="r.act" placeholder="0"></td>
-                        <td><input class="cellInput" type="number" v-model.number="r.move" placeholder="0"></td>
-                        <td><input class="cellInput" type="number" v-model.number="r.range" placeholder="0"></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                <div class="btnRow" style="margin-top:8px">
-                  <button type="button" @click="addEquipRow">行追加</button>
-                  <button type="button" class="danger" @click="clearEquipRows">全消し</button>
-                </div>
-              </div>
-            </section>
-
-            <section class="panel">
-              <div class="bd">
-                <div class="sectionTitle">所持品</div>
-                <div class="tableWrap2">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style="width:30%">名称</th>
-                        <th style="width:10%">重量</th>
-                        <th style="width:40%">効果</th>
-                        <th style="width:10%">参照</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(r,i) in items" :key="r._k">
-                        <td><input class="cellInput" v-model="r.name" placeholder="名称"></td>
-                        <td><input class="cellInput" v-model="r.weight" placeholder="重量"></td>
-                        <td><input class="cellInput" v-model="r.effect" placeholder="効果"></td>
-                        <td><input class="cellInput" v-model="r.ref" placeholder="参照"></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div class="btnRow" style="margin-top:8px">
-                  <button type="button" @click="addItemRow">行追加</button>
-                  <button type="button" class="danger" @click="clearItemRows">全消し</button>
-                </div>
-              </div>
-            </section>
-
-          </div>
-        </div>
-      </section>
+@media (max-width:1200px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div id="app" class="wrap">
+  <div class="topbar">
+    <div class="title"><div>NW キャラクターメイキング</div><small>COMPLETE</small></div>
+    <div class="header-controls">
+      <div class="sField" style="width:120px"><label>PL名</label><input v-model="meta.plName" placeholder="PL名"/></div>
+      <div class="sField" style="width:120px"><label>Password</label><input v-model="meta.password" type="password" placeholder="****"/></div>
+      <button class="primary" @click="dummyAction('保存しました')">保存</button>
+      <button class="danger" @click="resetData">削除</button>
     </div>
   </div>
 
-  <!-- Vue3 CDN -->
-  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-  <script>
-    const { createApp, reactive, ref, computed, watch } = Vue;
+  <div class="grid">
+    <section>
+      <div class="panel">
+        <div class="sectionTitle" @click="ui.showBasic = !ui.showBasic">
+          <div class="label-text" :data-icon="ui.showBasic ? '▼':'▶'">基本情報</div>
+        </div>
+        <div class="bd" v-show="ui.showBasic">
+          <div class="portraitBox" @click="pickImage"><img v-if="portraitUrl" :src="portraitUrl"/><div v-else style="text-align:center;padding-top:20%;color:var(--muted)">画像を選択</div></div>
+          <input ref="fileEl" type="file" @change="onFileChange" hidden/>
+          
+          <div style="display:grid;grid-template-columns:1fr 100px;gap:10px;margin-top:12px;align-items:end">
+            <div class="sField"><label>キャラクター名</label><input v-model="meta.name"/></div>
+            <div class="lvl-info"><label>TOTAL LV</label><b>{{totalLevel}}</b></div>
+          </div>
 
-    const ATTR_RAW = { /* 省略なし：上と同じ */ };
-  </script>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+            <div class="sField"><label>属性</label><select v-model="meta.element"><option v-for="k in elementKeys">{{k}}</option></select></div>
+            <div class="sField"><label>移動力</label><div class="numOut" style="width:100%">{{equipped.move}}</div></div>
+            <div class="sField"><label>WC</label><select v-model="meta.wclass"><option v-for="k in wClassKeys">{{k}}</option></select></div>
+            <div class="sField"><label>WC Lv</label><input type="text" :value="meta.wlv" @input="e => meta.wlv = convNum(e.target.value)" class="numIn" style="width:100%"/></div>
+            <div class="sField"><label>SC</label><select v-model="meta.sclass"><option v-for="k in sClassKeys">{{k}}</option></select></div>
+            <div class="sField"><label>SC Lv</label><input type="text" :value="meta.slv" @input="e => meta.slv = convNum(e.target.value)" class="numIn" style="width:100%"/></div>
+          </div>
+        </div>
+      </div>
 
-  <script>
-    // ↑このままだとATTR_RAWが二重定義にならないようにするため、
-    // ここから下に全JSをまとめて置く版にする（可読性は気にしない方針でOK）
+      <div class="panel">
+        <div class="sectionTitle" @click="ui.showPers = !ui.showPers">
+          <div class="label-text" :data-icon="ui.showPers ? '▼':'▶'">パーソナリティ</div>
+        </div>
+        <div class="bd" v-show="ui.showPers">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div class="sField"><label>種族</label><input v-model="pers.race"/></div>
+            <div class="sField"><label>二つ名</label><input v-model="pers.alias"/></div>
+            <div class="sField" style="grid-column:span 2"><label>ワークス</label><input v-model="pers.works"/></div>
+            <div class="sField" style="grid-column:span 2"><label>メモ</label><textarea v-model="pers.freeField" style="height:80px;resize:none"></textarea></div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    const { createApp:CA, reactive:RE, ref:RF, computed:CO, watch:WA } = Vue;
+    <section>
+      <div class="panel">
+        <div class="sectionTitle" @click="ui.showAbi = !ui.showAbi">
+          <div class="label-text" :data-icon="ui.showAbi ? '▼':'▶'">能力値</div>
+          <div class="summary-chips" v-show="!ui.showAbi">
+            <span class="chip" v-for="k in abiKeys">{{abiNames[k]}}<b>{{abiTotal(k)}}</b></span>
+            <span class="chip">内包<b>{{pranaTotal('inner')}}</b></span>
+            <span class="chip">解放<b>{{pranaTotal('release')}}</b></span>
+            <span class="chip">CF修正<b>{{pranaTotal('cf')}}</b></span>
+          </div>
+        </div>
+        <div class="bd" v-show="ui.showAbi">
+          <div class="tableWrap"><table>
+            <thead><tr><th>区分</th><th v-for="k in abiKeys">{{abiNames[k]}}</th><th>内包</th><th>解放</th><th>CF修正</th></tr></thead>
+            <tbody>
+              <tr><td>ベース</td><td v-for="k in abiKeys"><input class="numIn" :value="abi[k].base" @input="e => abi[k].base = convNum(e.target.value)"/></td><td><input class="numIn" :value="prana.innerBase" @input="e => prana.innerBase = convNum(e.target.value)"/></td><td><input class="numIn" :value="prana.releaseBase" @input="e => prana.releaseBase = convNum(e.target.value)"/></td><td><input class="numIn" readonly :value="cfBase" style="opacity:0.5"/></td></tr>
+              <tr><td>修正</td><td v-for="k in abiKeys"><input class="numIn" :value="abi[k].mod" @input="e => abi[k].mod = convNum(e.target.value)"/></td><td><input class="numIn" :value="prana.innerMod" @input="e => prana.innerMod = convNum(e.target.value)"/></td><td><input class="numIn" :value="prana.releaseMod" @input="e => prana.releaseMod = convNum(e.target.value)"/></td><td><input class="numIn" :value="prana.cfMod" @input="e => prana.cfMod = convNum(e.target.value)"/></td></tr>
+              <tr style="background:rgba(124,240,255,0.12);font-weight:800"><td>合計</td><td v-for="k in abiKeys" style="color:var(--accent2)">{{abiTotal(k)}}</td><td style="color:var(--accent2)">{{pranaTotal('inner')}}</td><td style="color:var(--accent2)">{{pranaTotal('release')}}</td><td style="color:var(--accent2)">{{pranaTotal('cf')}}</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
 
-    // ===== データ（前版と同一）=====
-    const ATTR_RAW2 = {
-      '天/天':[5,6,5,8,8,12,6,13,12,20,6,5,10,8,5,8,9,10,10],
-      '天/冥':[6,7,5,9,10,10,6,10,13,17,6,6,9,9,5,8,7,10,10],
-      '天/地':[8,6,4,9,7,11,7,11,15,16,6,7,10,8,5,9,7,9,10],
-      '天/水':[5,7,6,9,9,11,6,10,12,17,6,6,9,9,6,8,8,10,10],
-      '天/火':[8,8,5,7,7,10,7,11,15,15,7,8,9,7,6,9,8,8,10],
-      '天/風':[6,9,4,8,8,10,8,10,13,16,8,7,9,8,6,8,7,9,9],
-      '天/虚':[5,7,5,10,7,10,7,12,12,15,7,6,11,8,6,7,8,8,9],
-      '冥/天':[6,8,7,11,11,6,6,8,13,15,7,7,9,11,6,6,7,8,10],
-      '冥/冥':[7,9,7,12,13,4,6,5,14,18,7,8,8,12,6,5,6,8,10],
-      '冥/地':[9,8,6,12,10,5,7,6,16,14,7,8,9,11,6,7,6,7,10],
-      '冥/水':[6,9,8,12,12,5,6,5,13,15,7,7,8,12,7,5,6,8,10],
-      '冥/火':[9,10,7,10,10,4,7,6,16,14,8,9,8,10,7,6,6,7,10],
-      '冥/風':[7,11,6,11,11,4,8,5,14,14,9,9,8,11,7,5,5,7,9],
-      '冥/虚':[6,9,7,13,10,4,7,7,13,14,8,7,10,11,7,5,7,7,9],
-      '地/天':[10,6,6,11,6,8,7,9,17,14,6,8,10,8,6,9,7,7,10],
-      '地/冥':[11,7,6,12,8,6,7,6,18,14,7,9,9,10,6,8,6,7,10],
-      '地/地':[13,6,5,12,5,7,8,7,20,17,7,9,9,8,6,10,6,6,10],
-      '地/水':[10,7,7,12,7,7,7,6,17,14,7,8,9,9,7,8,6,7,10],
-      '地/火':[13,8,6,10,5,6,8,7,20,12,8,10,8,7,7,9,6,5,10],
-      '地/風':[11,9,5,11,6,6,9,6,18,13,9,10,8,8,7,8,5,6,9],
-      '地/虚':[10,7,6,13,5,6,8,8,17,12,7,8,10,9,7,8,7,5,9],
-      '水/天':[5,6,8,9,11,10,5,9,12,17,5,5,9,10,6,7,8,10,11],
-      '水/冥':[6,7,8,10,13,8,5,6,13,17,6,6,8,11,6,7,7,10,11],
-      '水/地':[8,6,7,10,10,9,6,7,15,16,6,7,8,10,6,8,7,9,11],
-      '水/水':[5,7,9,10,12,9,5,6,12,20,6,6,8,11,7,7,7,10,11],
-      '水/火':[8,8,8,8,10,8,6,7,15,16,7,8,7,9,7,8,7,9,11],
-      '水/風':[6,9,7,9,11,8,7,6,13,16,8,7,7,10,7,7,6,9,10],
-      '水/虚':[5,7,8,11,10,8,6,8,12,16,6,6,9,10,7,6,8,9,10],
-      '火/天':[12,8,8,7,5,7,7,9,19,13,7,10,8,6,7,9,8,6,10],
-      '火/冥':[13,9,8,8,7,5,7,6,20,13,8,11,7,7,7,9,7,6,11],
-      '火/地':[15,8,7,8,4,6,8,7,22,12,8,11,7,6,7,10,7,5,10],
-      '火/水':[12,9,9,8,6,6,7,6,19,13,8,10,7,7,8,9,7,6,11],
-      '火/火':[15,10,8,6,4,5,8,7,22,14,9,12,6,5,8,10,7,4,10],
-      '火/風':[13,11,7,7,5,5,9,6,20,12,10,12,6,6,8,9,6,5,10],
-      '火/虚':[12,9,8,9,4,5,8,8,19,11,8,10,8,6,8,8,8,4,9],
-      '風/天':[7,10,11,7,7,7,7,7,14,14,8,8,7,7,9,7,9,7,10],
-      '風/冥':[8,11,11,8,9,5,7,4,15,14,9,9,6,8,9,6,7,7,11],
-      '風/地':[10,10,10,8,6,6,8,5,17,13,9,10,6,7,9,8,7,6,10],
-      '風/水':[7,11,12,8,8,6,7,4,14,14,9,9,6,8,9,6,8,7,11],
-      '風/火':[10,12,11,6,6,5,8,5,17,12,10,11,5,6,9,7,8,5,10],
-      '風/風':[8,13,10,7,7,5,9,4,15,17,11,10,5,7,9,6,7,6,10],
-      '風/虚':[7,11,11,9,6,5,8,6,14,12,9,9,7,7,9,6,8,5,9],
-      '虚/天':[7,7,11,6,5,6,8,13,14,12,7,7,9,5,9,6,12,5,9],
-      '虚/冥':[8,8,11,7,7,4,8,10,15,12,8,8,8,7,9,6,10,5,10],
-      '虚/地':[10,7,10,7,4,5,9,11,17,11,8,8,9,5,9,7,10,4,9],
-      '虚/水':[7,8,12,7,6,5,8,10,14,12,8,7,8,6,10,6,11,5,10],
-      '虚/火':[10,9,11,5,4,4,9,11,17,11,9,9,8,4,10,7,11,4,9],
-      '虚/風':[8,10,10,6,5,4,10,10,15,11,10,9,8,5,10,6,10,4,9],
-      '虚/虚':[7,8,11,8,4,4,9,12,14,14,8,7,10,6,10,5,11,4,8],
+      <div class="panel">
+        <div class="sectionTitle" @click="ui.showCombat = !ui.showCombat">
+          <div class="label-text" :data-icon="ui.showCombat ? '▼':'▶'">戦闘値</div>
+          <div class="summary-chips" v-show="!ui.showCombat">
+            <span class="chip" v-for="k in combatKeys">{{combatLabels[k]}}<b>{{equipped[k]}}</b></span>
+          </div>
+        </div>
+        <div class="bd" v-show="ui.showCombat">
+          <div class="tableWrap"><table>
+            <thead><tr><th>区分</th><th v-for="k in combatKeys">{{combatLabels[k]}}</th></tr></thead>
+            <tbody>
+              <tr><td>ベース(能力+クラス)</td><td v-for="k in combatKeys"><div class="numOut" style="width:100%">{{baseCombat[k]}}</div></td></tr>
+              <tr><td>特殊修正</td><td v-for="k in combatKeys"><input class="numIn" :value="combat.skill[k]" @input="e => combat.skill[k] = convNum(e.target.value)"/></td></tr>
+              <tr style="background:rgba(184,255,106,0.12);font-weight:800"><td>装備込</td><td v-for="k in combatKeys" style="color:var(--accent2)">{{equipped[k]}}</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="sectionTitle">
+          <div class="label-text" @click="ui.showEquip = !ui.showEquip" :data-icon="ui.showEquip ? '▼':'▶'">装備・月衣</div>
+          <div class="cap-stats">
+            <div :class="['cap-item', {over: equipCaps.currentWeight > equipCaps.maxWeight}]"><span>重量</span><b>{{equipCaps.currentWeight}}</b><span class="cap-max">/{{equipCaps.maxWeight}}</span></div>
+            <div :class="['cap-item', {over: equipCaps.currentMem > equipCaps.maxMem}]"><span>記憶</span><b>{{equipCaps.currentMem}}</b><span class="cap-max">/{{equipCaps.maxMem}}</span></div>
+            <div :class="['cap-item', {over: equipCaps.currentTsuki > equipCaps.maxTsuki}]"><span>月衣</span><b>{{equipCaps.currentTsuki}}</b><span class="cap-max">/{{equipCaps.maxTsuki}}</span></div>
+          </div>
+          <div style="flex-grow:1"></div>
+          <div class="btnRow">
+            <button class="icon-btn primary" title="行追加" @click="addRow(equips, 'equip')">＋</button>
+            <button class="icon-btn danger" title="最下行削除" @click="removeLast(equips)" :disabled="equips.length<=1">×</button>
+            <button :class="['icon-btn', {'toggle-on': ui.sortEquip}]" title="並べ替え" @click="ui.sortEquip = !ui.sortEquip">⇅</button>
+          </div>
+        </div>
+        <div class="bd" v-show="ui.showEquip">
+          <div class="tableWrap"><table style="min-width:1300px">
+            <thead>
+              <tr>
+                <th class="sticky-col col-fix-0">装</th>
+                <th class="sticky-col col-fix-1">名称</th>
+                <th class="sticky-col col-fix-2">種別</th>
+                <th class="sticky-col col-fix-3">部位</th>
+                <th style="width:60px">重量</th>
+                <th v-for="k in combatKeys">{{combatLabels[k]}}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(r, idx) in equips" :key="r._k">
+                <td class="sticky-col col-fix-0">
+                  <div v-if="ui.sortEquip" class="sort-controls">
+                    <button class="sort-btn" @click="moveRow(equips, idx, -1)" :disabled="idx===0">↑</button>
+                    <button class="sort-btn" @click="moveRow(equips, idx, 1)" :disabled="idx===equips.length-1">↓</button>
+                  </div>
+                  <input v-else type="checkbox" v-model="r.equipped"/>
+                </td>
+                <td class="sticky-col col-fix-1"><input class="cellInput" v-model="r.name"/></td>
+                <td class="sticky-col col-fix-2">
+                  <select class="cellSelect" v-model="r.type">
+                    <option v-for="t in equipTypes" :value="t">{{t}}</option>
+                  </select>
+                </td>
+                <td class="sticky-col col-fix-3"><input class="cellInput" v-model="r.part"/></td>
+                <td><input class="numIn" style="width:100%" :value="r.weight" @input="e => r.weight = convNum(e.target.value)"/></td>
+                <td v-for="k in combatKeys"><input class="numIn" style="width:100%" :value="r[k]" @input="e => r[k] = convNum(e.target.value)"/></td>
+              </tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="sectionTitle">
+          <div class="label-text" @click="ui.showSkill = !ui.showSkill" :data-icon="ui.showSkill ? '▼':'▶'">特殊能力</div>
+          <div style="flex-grow:1"></div>
+          <div class="btnRow">
+            <button class="icon-btn primary" title="行追加" @click="addRow(skills, 'skill')">＋</button>
+            <button class="icon-btn danger" title="最下行削除" @click="removeLast(skills)" :disabled="skills.length<=1">×</button>
+            <button :class="['icon-btn', {'toggle-on': ui.sortSkill}]" title="並べ替え" @click="ui.sortSkill = !ui.sortSkill">⇅</button>
+          </div>
+        </div>
+        <div class="bd" v-show="ui.showSkill">
+          <div class="tableWrap"><table style="min-width:1000px">
+            <thead><tr><th v-if="ui.sortSkill" style="width:50px">移動</th><th>名称</th><th style="width:50px">SL</th><th>タイミング</th><th>判定値</th><th>対象</th><th>射程</th><th>代償</th><th>効果</th></tr></thead>
+            <tbody>
+              <tr v-for="(s, idx) in skills" :key="s._k">
+                <td v-if="ui.sortSkill">
+                  <div class="sort-controls">
+                    <button class="sort-btn" @click="moveRow(skills, idx, -1)" :disabled="idx===0">↑</button>
+                    <button class="sort-btn" @click="moveRow(skills, idx, 1)" :disabled="idx===skills.length-1">↓</button>
+                  </div>
+                </td>
+                <td><input class="cellInput" v-model="s.name"/></td>
+                <td><input class="numIn" style="width:100%" :value="s.sl" @input="e => s.sl = convNum(e.target.value)"/></td>
+                <td><input class="cellInput" v-model="s.timing"/></td>
+                <td><input class="cellInput" v-model="s.judge"/></td>
+                <td><input class="cellInput" v-model="s.target"/></td>
+                <td><input class="cellInput" v-model="s.range"/></td>
+                <td><input class="cellInput" v-model="s.cost"/></td>
+                <td><input class="cellInput" v-model="s.effect"/></td>
+              </tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script>
+const{createApp,reactive,ref,computed,watch}=Vue;
+
+// Data definitions
+const ATTR_DATA = {"天／天": {"stats": {"str": 5, "dex": 6, "agi": 5, "mnd": 8, "int": 8, "fai": 12, "per": 6, "luk": 13}, "base": {"hp": 12, "mp": 20}}, "天／冥": {"stats": {"str": 6, "dex": 7, "agi": 5, "mnd": 9, "int": 10, "fai": 10, "per": 6, "luk": 10}, "base": {"hp": 13, "mp": 17}}, "天／地": {"stats": {"str": 8, "dex": 6, "agi": 4, "mnd": 9, "int": 7, "fai": 11, "per": 7, "luk": 11}, "base": {"hp": 15, "mp": 16}}, "天／水": {"stats": {"str": 5, "dex": 7, "agi": 6, "mnd": 9, "int": 9, "fai": 11, "per": 6, "luk": 10}, "base": {"hp": 12, "mp": 17}}, "天／火": {"stats": {"str": 8, "dex": 8, "agi": 5, "mnd": 7, "int": 7, "fai": 10, "per": 7, "luk": 11}, "base": {"hp": 15, "mp": 15}}, "天／風": {"stats": {"str": 6, "dex": 9, "agi": 4, "mnd": 8, "int": 8, "fai": 10, "per": 8, "luk": 10}, "base": {"hp": 13, "mp": 16}}, "天／虚": {"stats": {"str": 5, "dex": 7, "agi": 5, "mnd": 10, "int": 7, "fai": 10, "per": 7, "luk": 12}, "base": {"hp": 12, "mp": 15}}, "冥／天": {"stats": {"str": 6, "dex": 8, "agi": 7, "mnd": 11, "int": 11, "fai": 6, "per": 6, "luk": 8}, "base": {"hp": 13, "mp": 15}}, "冥／冥": {"stats": {"str": 7, "dex": 9, "agi": 7, "mnd": 12, "int": 13, "fai": 4, "per": 6, "luk": 5}, "base": {"hp": 14, "mp": 18}}, "冥／地": {"stats": {"str": 9, "dex": 8, "agi": 6, "mnd": 12, "int": 10, "fai": 5, "per": 7, "luk": 6}, "base": {"hp": 16, "mp": 14}}, "冥／水": {"stats": {"str": 6, "dex": 9, "agi": 8, "mnd": 12, "int": 12, "fai": 5, "per": 6, "luk": 5}, "base": {"hp": 13, "mp": 15}}, "冥／火": {"stats": {"str": 9, "dex": 10, "agi": 7, "mnd": 10, "int": 10, "fai": 4, "per": 7, "luk": 6}, "base": {"hp": 16, "mp": 14}}, "冥／風": {"stats": {"str": 7, "dex": 11, "agi": 6, "mnd": 11, "int": 11, "fai": 4, "per": 8, "luk": 5}, "base": {"hp": 14, "mp": 14}}, "冥／虚": {"stats": {"str": 6, "dex": 9, "agi": 7, "mnd": 13, "int": 10, "fai": 4, "per": 7, "luk": 7}, "base": {"hp": 13, "mp": 14}}, "地／天": {"stats": {"str": 10, "dex": 6, "agi": 6, "mnd": 11, "int": 6, "fai": 8, "per": 7, "luk": 9}, "base": {"hp": 17, "mp": 14}}, "地／冥": {"stats": {"str": 11, "dex": 7, "agi": 6, "mnd": 12, "int": 8, "fai": 6, "per": 7, "luk": 6}, "base": {"hp": 18, "mp": 14}}, "地／地": {"stats": {"str": 13, "dex": 6, "agi": 5, "mnd": 12, "int": 5, "fai": 7, "per": 8, "luk": 7}, "base": {"hp": 20, "mp": 17}}, "地／水": {"stats": {"str": 10, "dex": 7, "agi": 7, "mnd": 12, "int": 7, "fai": 7, "per": 7, "luk": 6}, "base": {"hp": 17, "mp": 14}}, "地／火": {"stats": {"str": 13, "dex": 8, "agi": 6, "mnd": 10, "int": 5, "fai": 6, "per": 8, "luk": 7}, "base": {"hp": 20, "mp": 12}}, "地／風": {"stats": {"str": 11, "dex": 9, "agi": 5, "mnd": 11, "int": 6, "fai": 6, "per": 9, "luk": 6}, "base": {"hp": 18, "mp": 13}}, "地／虚": {"stats": {"str": 10, "dex": 7, "agi": 6, "mnd": 13, "int": 5, "fai": 6, "per": 8, "luk": 8}, "base": {"hp": 17, "mp": 12}}, "水／天": {"stats": {"str": 5, "dex": 6, "agi": 8, "mnd": 9, "int": 11, "fai": 10, "per": 5, "luk": 9}, "base": {"hp": 12, "mp": 17}}, "水／冥": {"stats": {"str": 6, "dex": 7, "agi": 8, "mnd": 10, "int": 13, "fai": 8, "per": 5, "luk": 6}, "base": {"hp": 13, "mp": 17}}, "水／地": {"stats": {"str": 8, "dex": 6, "agi": 7, "mnd": 10, "int": 10, "fai": 9, "per": 6, "luk": 7}, "base": {"hp": 15, "mp": 16}}, "水／水": {"stats": {"str": 5, "dex": 7, "agi": 9, "mnd": 10, "int": 12, "fai": 9, "per": 5, "luk": 6}, "base": {"hp": 12, "mp": 20}}, "水／火": {"stats": {"str": 8, "dex": 8, "agi": 8, "mnd": 8, "int": 10, "fai": 8, "per": 6, "luk": 7}, "base": {"hp": 15, "mp": 16}}, "水／風": {"stats": {"str": 6, "dex": 9, "agi": 7, "mnd": 9, "int": 11, "fai": 8, "per": 7, "luk": 6}, "base": {"hp": 13, "mp": 16}}, "水／虚": {"stats": {"str": 5, "dex": 7, "agi": 8, "mnd": 11, "int": 10, "fai": 8, "per": 6, "luk": 8}, "base": {"hp": 12, "mp": 16}}, "火／天": {"stats": {"str": 12, "dex": 8, "agi": 8, "mnd": 7, "int": 5, "fai": 7, "per": 7, "luk": 9}, "base": {"hp": 19, "mp": 13}}, "火／冥": {"stats": {"str": 13, "dex": 9, "agi": 8, "mnd": 8, "int": 7, "fai": 5, "per": 7, "luk": 6}, "base": {"hp": 20, "mp": 13}}, "火／地": {"stats": {"str": 15, "dex": 8, "agi": 7, "mnd": 8, "int": 4, "fai": 6, "per": 8, "luk": 7}, "base": {"hp": 22, "mp": 12}}, "火／水": {"stats": {"str": 12, "dex": 9, "agi": 9, "mnd": 8, "int": 6, "fai": 6, "per": 7, "luk": 6}, "base": {"hp": 19, "mp": 13}}, "火／火": {"stats": {"str": 15, "dex": 10, "agi": 8, "mnd": 6, "int": 4, "fai": 5, "per": 8, "luk": 7}, "base": {"hp": 22, "mp": 14}}, "火／風": {"stats": {"str": 13, "dex": 11, "agi": 7, "mnd": 7, "int": 5, "fai": 5, "per": 9, "luk": 6}, "base": {"hp": 20, "mp": 12}}, "火／虚": {"stats": {"str": 12, "dex": 9, "agi": 8, "mnd": 9, "int": 4, "fai": 5, "per": 8, "luk": 8}, "base": {"hp": 19, "mp": 11}}, "風／天": {"stats": {"str": 7, "dex": 10, "agi": 11, "mnd": 7, "int": 7, "fai": 7, "per": 7, "luk": 7}, "base": {"hp": 14, "mp": 14}}, "風／冥": {"stats": {"str": 8, "dex": 11, "agi": 11, "mnd": 8, "int": 9, "fai": 5, "per": 7, "luk": 4}, "base": {"hp": 15, "mp": 14}}, "風／地": {"stats": {"str": 10, "dex": 10, "agi": 10, "mnd": 8, "int": 6, "fai": 6, "per": 8, "luk": 5}, "base": {"hp": 17, "mp": 13}}, "風／水": {"stats": {"str": 7, "dex": 11, "agi": 12, "mnd": 8, "int": 8, "fai": 6, "per": 7, "luk": 4}, "base": {"hp": 14, "mp": 14}}, "風／火": {"stats": {"str": 10, "dex": 12, "agi": 11, "mnd": 6, "int": 6, "fai": 5, "per": 8, "luk": 5}, "base": {"hp": 17, "mp": 12}}, "風／風": {"stats": {"str": 8, "dex": 13, "agi": 10, "mnd": 7, "int": 7, "fai": 5, "per": 9, "luk": 4}, "base": {"hp": 15, "mp": 17}}, "風／虚": {"stats": {"str": 7, "dex": 11, "agi": 11, "mnd": 9, "int": 6, "fai": 5, "per": 8, "luk": 6}, "base": {"hp": 14, "mp": 12}}, "虚／天": {"stats": {"str": 7, "dex": 7, "agi": 11, "mnd": 6, "int": 5, "fai": 6, "per": 8, "luk": 13}, "base": {"hp": 14, "mp": 12}}, "虚／冥": {"stats": {"str": 8, "dex": 8, "agi": 11, "mnd": 7, "int": 7, "fai": 4, "per": 8, "luk": 10}, "base": {"hp": 15, "mp": 12}}, "虚／地": {"stats": {"str": 10, "dex": 7, "agi": 10, "mnd": 7, "int": 4, "fai": 5, "per": 9, "luk": 11}, "base": {"hp": 17, "mp": 11}}, "虚／水": {"stats": {"str": 7, "dex": 8, "agi": 12, "mnd": 7, "int": 6, "fai": 5, "per": 8, "luk": 10}, "base": {"hp": 14, "mp": 12}}, "虚／火": {"stats": {"str": 10, "dex": 9, "agi": 11, "mnd": 5, "int": 4, "fai": 4, "per": 9, "luk": 11}, "base": {"hp": 17, "mp": 11}}, "虚／風": {"stats": {"str": 8, "dex": 10, "agi": 10, "mnd": 6, "int": 5, "fai": 4, "per": 10, "luk": 10}, "base": {"hp": 15, "mp": 11}}, "虚／虚": {"stats": {"str": 7, "dex": 8, "agi": 11, "mnd": 8, "int": 4, "fai": 4, "per": 9, "luk": 12}, "base": {"hp": 14, "mp": 14}}};
+const STYLE_DATA = {"アタッカー": {"hit": 3, "atk": 4, "mag": 0, "matk": 0, "eva": 2, "def": 2, "res": 0, "mdef": 0, "act": 2, "hp": 5, "mp": 2}, "キャスター": {"hit": 0, "atk": 0, "mag": 3, "matk": 4, "eva": 0, "def": 0, "res": 2, "mdef": 2, "act": 2, "hp": 2, "mp": 5}, "ディフェンダー": {"hit": 2, "atk": 2, "mag": 2, "matk": 0, "eva": 0, "def": 4, "res": 0, "mdef": 3, "act": 0, "hp": 6, "mp": 1}, "ヒーラー": {"hit": 2, "atk": 0, "mag": 3, "matk": 2, "eva": 0, "def": 2, "res": 1, "mdef": 3, "act": 0, "hp": 3, "mp": 4}};
+const CLASS_DATA = {"異能者": {"hit": 2, "atk": 2, "mag": 3, "matk": 2, "eva": 2, "def": 0, "res": 2, "mdef": 0, "act": 0, "hp": 3, "mp": 4}, "大いなる者": {"hit": 2, "atk": 2, "mag": 3, "matk": 3, "eva": 0, "def": 0, "res": 2, "mdef": 1, "act": 0, "hp": 3, "mp": 4}, "落とし子": {"hit": 3, "atk": 3, "mag": 3, "matk": 3, "eva": 0, "def": 0, "res": 0, "mdef": 0, "act": 1, "hp": 5, "mp": 2}, "陰陽師": {"hit": 0, "atk": 0, "mag": 2, "matk": 2, "eva": 2, "def": 0, "res": 3, "mdef": 4, "act": 0, "hp": 2, "mp": 5}, "吸血鬼": {"hit": 2, "atk": 2, "mag": 2, "matk": 3, "eva": 0, "def": 0, "res": 2, "mdef": 2, "act": 0, "hp": 4, "mp": 3}, "強化人間": {"hit": 4, "atk": 3, "mag": 0, "matk": 0, "eva": 1, "def": 2, "res": 0, "mdef": 0, "act": 3, "hp": 5, "mp": 2}, "侍": {"hit": 4, "atk": 3, "mag": 2, "matk": 0, "eva": 1, "def": 0, "res": 0, "mdef": 0, "act": 3, "hp": 5, "mp": 2}, "使徒": {"hit": 0, "atk": 0, "mag": 2, "matk": 2, "eva": 0, "def": 0, "res": 4, "mdef": 4, "act": 1, "hp": 1, "mp": 6}, "人造人間": {"hit": 3, "atk": 3, "mag": 0, "matk": 0, "eva": 0, "def": 4, "res": 0, "mdef": 3, "act": 0, "hp": 6, "mp": 1}, "侵魔召喚師": {"hit": 0, "atk": 0, "mag": 3, "matk": 3, "eva": 0, "def": 0, "res": 3, "mdef": 3, "act": 1, "hp": 2, "mp": 5}, "人狼": {"hit": 3, "atk": 4, "mag": 0, "matk": 0, "eva": 3, "def": 1, "res": 0, "mdef": 0, "act": 2, "hp": 6, "mp": 1}, "聖職者": {"hit": 1, "atk": 3, "mag": 1, "matk": 2, "eva": 0, "def": 1, "res": 2, "mdef": 3, "act": 0, "hp": 3, "mp": 4}, "仙人": {"hit": 2, "atk": 2, "mag": 3, "matk": 2, "eva": 0, "def": 0, "res": 2, "mdef": 2, "act": 0, "hp": 3, "mp": 4}, "転生者": {"hit": 2, "atk": 2, "mag": 1, "matk": 2, "eva": 1, "def": 2, "res": 1, "mdef": 2, "act": 0, "hp": 4, "mp": 3}, "同調者": {"hit": 2, "atk": 2, "mag": 2, "matk": 2, "eva": 1, "def": 1, "res": 1, "mdef": 1, "act": 1, "hp": 3, "mp": 4}, "忍者": {"hit": 3, "atk": 3, "mag": 0, "matk": 0, "eva": 3, "def": 0, "res": 0, "mdef": 0, "act": 4, "hp": 5, "mp": 2}, "箒騎士": {"hit": 2, "atk": 3, "mag": 1, "matk": 0, "eva": 2, "def": 1, "res": 2, "mdef": 1, "act": 1, "hp": 5, "mp": 2}, "魔剣使い": {"hit": 4, "atk": 3, "mag": 0, "matk": 0, "eva": 2, "def": 2, "res": 0, "mdef": 0, "act": 2, "hp": 5, "mp": 2}, "魔術師": {"hit": 0, "atk": 0, "mag": 4, "matk": 4, "eva": 0, "def": 0, "res": 3, "mdef": 2, "act": 0, "hp": 2, "mp": 5}, "魔物使い": {"hit": 3, "atk": 2, "mag": 0, "matk": 0, "eva": 0, "def": 3, "res": 2, "mdef": 3, "act": 0, "hp": 4, "mp": 3}, "勇者": {"hit": 2, "atk": 2, "mag": 2, "matk": 2, "eva": 1, "def": 1, "res": 1, "mdef": 1, "act": 1, "hp": 4, "mp": 3}, "夢使い": {"hit": 0, "atk": 0, "mag": 3, "matk": 3, "eva": 1, "def": 2, "res": 2, "mdef": 2, "act": 0, "hp": 2, "mp": 5}, "錬金術師": {"hit": 2, "atk": 2, "mag": 3, "matk": 3, "eva": 0, "def": 0, "res": 1, "mdef": 1, "act": 1, "hp": 2, "mp": 5}, "龍使い": {"hit": 3, "atk": 4, "mag": 0, "matk": 0, "eva": 2, "def": 4, "res": 0, "mdef": 0, "act": 0, "hp": 6, "mp": 1}};
+const EQUIP_TYPES = ['武器', '防具', '箒', '魔装', 'その他'];
+
+const abiKeys=["str","dex","agi","mnd","int","fai","per","luk"], abiNames={str:"筋力",dex:"器用",agi:"敏捷",mnd:"精神",int:"知力",fai:"信仰",per:"知覚",luk:"幸運"};
+const combatKeys=["hit","atk","mag","matk","eva","def","res","mdef","act","move","hp","mp"], combatLabels={hit:"命中",atk:"攻撃",mag:"魔導",matk:"魔攻",eva:"回避",def:"防御",res:"抵抗",mdef:"魔防",act:"行動",move:"移動",hp:"HP",mp:"MP"};
+
+createApp({setup(){
+  const ui=reactive({showBasic:true,showPers:true,showAbi:true,showCombat:true,showEquip:true,showSkill:true,sortEquip:false,sortSkill:false});
+  const meta=reactive({plName:"",password:"",name:"",element:"天／天",wclass:"異能者",sclass:"アタッカー",wlv:0,slv:0});
+  const pers=reactive({race:"",alias:"",works:"",money:"",freeField:""});
+  const prana=reactive({innerBase:0,innerMod:0,releaseBase:0,releaseMod:0,cfMod:0});
+  const abi=reactive(abiKeys.reduce((o,k)=>{o[k]={base:10,mod:0};return o},{}));
+  const combat=reactive({base:{hp:0,mp:0},skill:combatKeys.reduce((o,k)=>{o[k]=0;return o},{})});
+  const equips=reactive([]),skills=reactive([]),portraitUrl=ref(""),fileEl=ref(null);
+
+  const convNum = (val) => {
+    if (typeof val !== 'string') val = String(val || 0);
+    const s = val.replace(/[０-９]/g, (m) => String.fromCharCode(m.charCodeAt(0) - 0xFEE0));
+    const n = parseInt(s, 10);
+    return isNaN(n) ? 0 : n;
+  };
+
+  const abiTotal=k=>Number(abi[k].base)+Number(abi[k].mod);
+  const cfBase=computed(()=>Math.floor(abiTotal('luk')/2));
+  const pranaTotal=t=>{
+    if(t==='inner') return Number(prana.innerBase)+Number(prana.innerMod);
+    if(t==='release') return Number(prana.releaseBase)+Number(prana.releaseMod);
+    if(t==='cf') return cfBase.value+Number(prana.cfMod);
+    return 0;
+  };
+  const totalLevel=computed(()=>Number(meta.wlv)+Number(meta.slv));
+
+  // Update Base Ability & HP/MP from Element
+  const updateBase=()=>{
+    const attr=ATTR_DATA[meta.element];
+    if(!attr) return;
+    // Set Abilities
+    abiKeys.forEach(k => abi[k].base = attr.stats[k] || 0);
+    // Set HP/MP Base
+    combat.base.hp = attr.base.hp || 0;
+    combat.base.mp = attr.base.mp || 0;
+  };
+  watch(()=>meta.element, updateBase, {immediate:true});
+
+  // Calculate Base Combat Stats based on Rules
+  const baseCombat = computed(() => {
+    // 1. Calc from Abilities
+    const str=abiTotal('str'), dex=abiTotal('dex'), agi=abiTotal('agi'), mnd=abiTotal('mnd');
+    const int=abiTotal('int'), fai=abiTotal('fai'), per=abiTotal('per'), luk=abiTotal('luk');
+    
+    const c = {
+        hit: Math.floor((dex + per) / 2),
+        eva: Math.floor((agi + per) / 2),
+        atk: Math.floor((str + dex) / 2),
+        def: Math.floor((str + fai) / 2),
+        mag: Math.floor((mnd + luk) / 2),
+        res: Math.floor((agi + luk) / 2),
+        matk: Math.floor((int + mnd) / 2),
+        mdef: Math.floor((int + fai) / 2),
+        act: Math.floor((str + agi + int + fai) / 3),
+        hp: combat.base.hp,
+        mp: combat.base.mp,
+        move: 0
     };
 
-    const CLASS_RAW2 = {
-      'アタッカー':[3,4,0,0,2,2,0,0,2,5,2],
-      'キャスター':[0,0,3,4,0,0,2,2,2,2,5],
-      'ディフェンダー':[2,2,2,0,0,4,0,3,0,6,1],
-      'ヒーラー':[2,0,3,2,0,2,1,3,0,3,4],
-      '異能者':[2,2,3,2,2,0,2,0,0,3,4],
-      '大いなる者':[2,2,3,3,0,0,2,1,0,3,4],
-      '落とし子':[3,3,3,3,0,0,0,0,1,5,2],
-      '陰陽師':[0,0,2,2,2,0,3,4,0,2,5],
-      '吸血鬼':[2,2,2,3,0,0,2,2,0,4,3],
-      '強化人間':[4,3,0,0,1,2,0,0,3,5,2],
-      '侍':[4,3,2,0,1,0,0,0,3,5,2],
-      '使徒':[0,0,2,2,0,0,4,4,1,1,6],
-      '人造人間':[3,3,0,0,0,4,0,3,0,6,1],
-      '侵魔召喚師':[0,0,3,3,0,0,3,3,1,2,5],
-      '人狼':[3,4,0,0,3,1,0,0,2,6,1],
-      '聖職者':[1,3,1,2,0,1,2,3,0,3,4],
-      '仙人':[2,2,3,2,0,0,2,2,0,3,4],
-      '転生者':[2,2,1,2,1,2,1,2,0,4,3],
-      '同調者':[2,2,2,2,1,1,1,1,1,3,4],
-      '忍者':[3,3,0,0,3,0,0,0,4,5,2],
-      '箒騎士':[2,3,1,0,2,1,2,1,1,5,2],
-      '魔剣使い':[4,3,0,0,2,2,0,0,2,5,2],
-      '魔術師':[0,0,4,4,0,0,3,2,0,2,5],
-      '魔物使い':[3,2,0,0,0,3,2,3,0,4,3],
-      '勇者':[2,2,2,2,1,1,1,1,1,4,3],
-      '夢使い':[0,0,3,3,1,2,2,2,0,2,5],
-      '錬金術師':[2,2,3,3,0,0,1,1,1,2,5],
-      '龍使い':[3,4,0,0,2,4,0,0,0,6,1],
-    };
+    // 2. Add Class Modifiers
+    const wData = CLASS_DATA[meta.wclass] || {};
+    const sData = STYLE_DATA[meta.sclass] || {};
+    const wLv = Number(meta.wlv), sLv = Number(meta.slv);
 
-    const ABI_KEYS2 = ['str','dex','agi','mnd','int','fai','per','luk'];
-    const COMBAT_KEYS2 = ['hit','atk','mag','matk','eva','def','res','mdef','act'];
-    const CLASS_KEYS2 = ['hit','atk','mag','matk','eva','def','res','mdef','act','hp','mp'];
-    const ALL_KEYS2 = ['hit','atk','mag','matk','eva','def','res','mdef','act','move','hp','mp','heal'];
+    ['hit','atk','mag','matk','eva','def','res','mdef','act','hp','mp'].forEach(k => {
+        c[k] += (wData[k]||0) * wLv;
+        c[k] += (sData[k]||0) * sLv;
+    });
 
-    const num2 = (v)=>{ const n=Number(v); return Number.isFinite(n)?n:0; };
-    const emptyCombatRow2 = (seed={})=>{ const o={}; ALL_KEYS2.forEach(k=>o[k]=0); Object.assign(o,seed); return o; };
-    const mkKey2 = ()=> Math.random().toString(36).slice(2)+Date.now().toString(36);
+    // 3. Calc Move (based on unequipped Act)
+    c.move = Math.floor(c.act / 10) + 1;
 
-    CA({
-      setup(){
-        const fileEl = RF(null);
-        const portraitUrl = RF("");
+    return c;
+  });
 
-        const meta = RE({ name:"", element:"", wclass:"", sclass:"", wlv:1, slv:1 });
-        const pers = RE({ race:"",alias:"",gender:"",age:"",works:"",affiliation:"",hairColor:"",freeField:"",eyeColor:"",skinColor:"",height:"",weight:"" });
-        const lifepath = RE({ origin:{name:"",trait:"",desc:""}, living:{name:"",trait:"",desc:""} });
-        const abi = RE({ str:10,dex:10,agi:10,mnd:8,int:6,fai:6,per:8,luk:5 });
-
-        const combat = RE({
-          base: emptyCombatRow2({hit:17,atk:20,mag:6,matk:7,eva:12,def:12,res:7,mdef:6,act:15,move:2,hp:27,mp:17,heal:0}),
-          skill: emptyCombatRow2(),
-          equip: emptyCombatRow2(),
-        });
-
-        const skills = RE([]), spells = RE([]), equips = RE([]), items = RE([]);
-
-        const addSkillRow = ()=> skills.push({_k:mkKey2(),name:"",sl:"",timing:"",judge:"",target:"",range:"",cost:"",effect:""});
-        const clearSkillRows = ()=> skills.splice(0,skills.length);
-        const addSpellRow = ()=> spells.push({_k:mkKey2(),name:"",lv:"",kind:"",timing:"",judge:"",range:"",cost:"",effect:""});
-        const clearSpellRows = ()=> spells.splice(0,spells.length);
-
-        const addEquipRow = ()=> equips.push({
-          _k:mkKey2(),
-          equipped:false,
-          name:"",
-          type:"その他",
-          weight:0,
-          slot:"",
-          hit:0,atk:0,mag:0,matk:0,eva:0,def:0,res:0,mdef:0,hp:0,mp:0,act:0,move:0,range:0
-        });
-        const clearEquipRows = ()=>{ equips.splice(0,equips.length); updateEquipFromTable(); };
-
-        const addItemRow = ()=> items.push({_k:mkKey2(),name:"",weight:"",effect:"",ref:""});
-        const clearItemRows = ()=> items.splice(0,items.length);
-
-        for(let i=0;i<3;i++){ addSkillRow(); addSpellRow(); addEquipRow(); addItemRow(); }
-
-        const elementKeys = CO(()=> Object.keys(ATTR_RAW2));
-        const classKeys = CO(()=> Object.keys(CLASS_RAW2));
-
-        const totalLevel = CO(()=> (parseInt(meta.wlv||0,10) + parseInt(meta.slv||0,10)));
-
-        const dispLine = CO(()=>{
-          const n = (meta.name||"").trim() || '（未入力）';
-          const e = meta.element || '—';
-          const wc = meta.wclass || '—';
-          const sc = meta.sclass || '—';
-          return `${n} / ${e} / ${wc}(Lv${meta.wlv||1}) / ${sc}(Lv${meta.slv||1})`;
-        });
-
-        const getAttrData = (el)=>{
-          const arr = ATTR_RAW2[el];
-          if(!arr) return null;
-          const abilities = {}; ABI_KEYS2.forEach((k,i)=> abilities[k]=arr[i]);
-          const hp = arr[8], mp = arr[9];
-          const combat0 = {}; COMBAT_KEYS2.forEach((k,i)=> combat0[k]=arr[10+i]);
-          return { abilities, hp, mp, combat: combat0 };
-        };
-
-        const getClassBonus = (name, level)=>{
-          const arr = CLASS_RAW2[name];
-          const b = {}; CLASS_KEYS2.forEach((k,i)=> b[k] = arr ? (arr[i]*level) : 0);
-          return b;
-        };
-
-        const updateBase = ()=>{
-          const attr = getAttrData(meta.element);
-          if(!attr) return;
-
-          ABI_KEYS2.forEach(k=> abi[k] = attr.abilities[k]);
-
-          const wl = parseInt(meta.wlv||1,10), sl = parseInt(meta.slv||1,10);
-
-          const baseVals = {};
-          COMBAT_KEYS2.forEach(k=> baseVals[k]=attr.combat[k]);
-          baseVals.hp = attr.hp; baseVals.mp = attr.mp;
-
-          const wb = getClassBonus(meta.wclass, wl);
-          const sb = getClassBonus(meta.sclass, sl);
-          CLASS_KEYS2.forEach(k=> baseVals[k] = (baseVals[k]||0) + (wb[k]||0) + (sb[k]||0));
-
-          ALL_KEYS2.forEach(k=>{
-            if(baseVals[k] === undefined){
-              if(k==='move') combat.base.move = combat.base.move ?? 2;
-              else if(k==='heal') combat.base.heal = combat.base.heal ?? 0;
-            } else combat.base[k] = baseVals[k];
-          });
-        };
-
-        WA(()=> [meta.element, meta.wclass, meta.sclass, meta.wlv, meta.slv], ()=> updateBase(), {deep:false});
-
-        const addRows = (a,b)=>{ const o={}; ALL_KEYS2.forEach(k=> o[k]=num2(a[k])+num2(b[k])); return o; };
-        const unequipped = CO(()=> addRows(combat.base, combat.skill));
-        const equipped = CO(()=> addRows(unequipped.value, combat.equip));
-
-        const bars = CO(()=>{
-          const hp = num2(equipped.value.hp), mp = num2(equipped.value.mp);
-          const hpMax = Math.max(1,hp), mpMax = Math.max(1,mp);
-          return {
-            hpText:`${hp} / ${hpMax}`,
-            mpText:`${mp} / ${mpMax}`,
-            hpPct:Math.max(0,Math.min(100,(hp/hpMax)*100)),
-            mpPct:Math.max(0,Math.min(100,(mp/mpMax)*100)),
-          };
-        });
-
-        const pickImage = ()=> fileEl.value && fileEl.value.click();
-        const clearImage = ()=>{ portraitUrl.value=""; if(fileEl.value) fileEl.value.value=""; };
-        const onFileChange = (e)=>{
-          const f = e.target.files && e.target.files[0];
-          if(!f) return;
-          if(portraitUrl.value) URL.revokeObjectURL(portraitUrl.value);
-          portraitUrl.value = URL.createObjectURL(f);
-        };
-
-        // ===== 装備修正（戦闘値）集計：装備チェックONのみ反映 =====
-        const updateEquipFromTable = ()=>{
-          const totals = { hit:0,atk:0,mag:0,matk:0,eva:0,def:0,res:0,mdef:0,hp:0,mp:0,act:0,move:0,heal:0 };
-          const keys = ['hit','atk','mag','matk','eva','def','res','mdef','hp','mp','act','move'];
-          equips.forEach(r=>{
-            if(!r.equipped) return;
-            keys.forEach(k=> totals[k] += num2(r[k]));
-          });
-          ALL_KEYS2.forEach(k=> combat.equip[k] = totals[k] || 0);
-        };
-
-        WA(equips, ()=> updateEquipFromTable(), {deep:true});
-
-        // ===== 重量/記憶/月衣：分子/分母 =====
-        const cap = CO(()=>{
-          const lv = totalLevel.value;
-          const weightMax = num2(abi.str) + lv;
-          const memoryMax = num2(abi.int) + lv;
-          const moonMax = (num2(abi.str)*2) + lv;
-
-          let weightUsed=0, memoryUsed=0, moonUsed=0;
-
-          equips.forEach(r=>{
-            const w = num2(r.weight);
-            if(!r.equipped){
-              moonUsed += w;
-              return;
-            }
-            if(r.type === '魔装') memoryUsed += w;
-            else weightUsed += w;
-          });
-
-          return { weightUsed, weightMax, memoryUsed, memoryMax, moonUsed, moonMax };
-        });
-
-        // init
-        updateBase();
-        updateEquipFromTable();
-
-        return {
-          fileEl, portraitUrl, pickImage, clearImage, onFileChange,
-          meta, pers, lifepath, abi, combat,
-          elementKeys, classKeys,
-          dispLine, totalLevel,
-          unequipped, equipped, bars,
-          skills, spells, equips, items,
-          addSkillRow, clearSkillRows,
-          addSpellRow, clearSpellRows,
-          addEquipRow, clearEquipRows,
-          addItemRow, clearItemRows,
-          cap,
-        };
+  const equipped=computed(()=>{
+    const res={...baseCombat.value};
+    equips.forEach(e => {
+      if(e.equipped) {
+          combatKeys.forEach(k => res[k] = Number(res[k]) + Number(e[k]||0));
       }
-    }).mount('#app');
-  </script>
-</body>
-</html>
+    });
+    // Add Skill/Other Mods
+    combatKeys.forEach(k => {
+        res[k] = Number(res[k]) + Number(combat.skill[k]||0);
+    });
+    return res;
+  });
+
+  const equipCaps = computed(() => {
+    const tl = totalLevel.value;
+    const str = abiTotal('str');
+    const int = abiTotal('int');
+    const maxWeight = str + tl;
+    const maxMem = int + tl;
+    const maxTsuki = (str * 2) + tl;
+    let currentWeight = 0, currentMem = 0, currentTsuki = 0;
+    equips.forEach(e => {
+      const w = Number(e.weight || 0);
+      const isMagic = e.type === '魔装';
+      if (e.equipped && !isMagic) currentWeight += w;
+      if (isMagic) currentMem += w;
+      if (!e.equipped && !isMagic) currentTsuki += w;
+    });
+    return { maxWeight, maxMem, maxTsuki, currentWeight, currentMem, currentTsuki };
+  });
+
+  const addRow=(list,type)=>{
+    const obj={_k:Math.random()};
+    if(type==='equip') Object.assign(obj,{equipped:true,name:"",type:'武器',part:"",weight:0,hit:0,atk:0,mag:0,matk:0,eva:0,def:0,res:0,mdef:0,act:0,move:0,hp:0,mp:0});
+    else Object.assign(obj,{name:"",sl:1,timing:"",judge:"",target:"",range:"",cost:"",effect:""});
+    list.push(obj);
+  };
+  const removeLast=list=>{if(list.length>1)list.pop()};
+  const moveRow=(list,idx,dir)=>{
+    const target=idx+dir;if(target<0||target>=list.length)return;
+    const tmp=list[idx];list[idx]=list[target];list[target]=tmp;
+  };
+
+  const pickImage=()=>fileEl.value.click();
+  const onFileChange=e=>{const f=e.target.files[0];if(f)portraitUrl.value=URL.createObjectURL(f)};
+  const dummyAction=m=>alert(m);
+  const resetData=()=>{if(confirm("データをすべてリセットしますか？")) location.reload()};
+
+  for(let i=0;i<3;i++){addRow(equips,'equip');addRow(skills,'skill')}
+
+  return{ui,meta,pers,prana,abi,combat,equips,skills,portraitUrl,fileEl,abiKeys,abiNames,combatKeys,combatLabels,abiTotal,cfBase,pranaTotal,totalLevel,baseCombat,equipped,equipCaps,addRow,removeLast,moveRow,pickImage,onFileChange,dummyAction,resetData,convNum,elementKeys:Object.keys(ATTR_DATA),wClassKeys:Object.keys(CLASS_DATA),sClassKeys:Object.keys(STYLE_DATA),equipTypes:EQUIP_TYPES};
+}}).mount("#app");
+</script></body></html>
